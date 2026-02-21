@@ -27,9 +27,9 @@ class TenetScreen extends StatefulWidget {
 
 class _TenetScreenState extends State<TenetScreen> {
   int _entropy = 0;
-  String _origText = "";
-  String _revText = "";
-  String _statusMessage = "SYSTEM READY";
+  String _origText = '';
+  String _revText = '';
+  String _statusMessage = 'SYSTEM READY';
   final TextEditingController _controller = TextEditingController();
 
   void _handleInput() {
@@ -37,11 +37,11 @@ class _TenetScreenState extends State<TenetScreen> {
     if (input.isEmpty) return;
 
     setState(() {
-      if (input.toLowerCase() == "tenet") {
+      if (input.toLowerCase() == 'tenet') {
         _entropy = 0;
-        _origText = "";
-        _revText = "";
-        _statusMessage = "SYSTEM RESET: STABLE";
+        _origText = '';
+        _revText = '';
+        _statusMessage = 'SYSTEM RESET: STABLE';
         _controller.clear();
         return;
       }
@@ -56,11 +56,11 @@ class _TenetScreenState extends State<TenetScreen> {
       }
 
       if (_entropy > 200) {
-        _statusMessage = "STATUS: CRITICAL ERROR";
+        _statusMessage = 'STATUS: CRITICAL ERROR';
       } else if (_entropy == 0) {
-        _statusMessage = "ZERO ENTROPY: INVERSION DISABLED";
+        _statusMessage = 'ZERO ENTROPY: INVERSION DISABLED';
       } else {
-        _statusMessage = "STATUS: INVERSION ACTIVE";
+        _statusMessage = 'STATUS: INVERSION ACTIVE';
       }
       _controller.clear();
     });
@@ -69,25 +69,25 @@ class _TenetScreenState extends State<TenetScreen> {
   String _processText(String input) {
     if (_entropy == 0) return input.toUpperCase();
     if (_entropy > 200) {
-      return (input.split('')..shuffle(Random())).join('').toUpperCase();
+      return (input.split('')..shuffle(Random())).join().toUpperCase();
     }
-    return input.split('').reversed.join('').toUpperCase();
+    return input.split('').reversed.join().toUpperCase();
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isCritical = _entropy > 200;
-    Color themeColor = isCritical ? Colors.redAccent : Colors.cyanAccent;
+    final bool isCritical = _entropy > 200;
+    final Color themeColor = isCritical ? Colors.redAccent : Colors.cyanAccent;
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text("T E N E T", style: TextStyle(letterSpacing: 10)),
+        title: const Text('T E N E T', style: TextStyle(letterSpacing: 10)),
         centerTitle: true,
         backgroundColor: isCritical ? Colors.red[900] : Colors.blueGrey[900],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(25.0),
+        padding: const EdgeInsets.all(25),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -103,7 +103,7 @@ class _TenetScreenState extends State<TenetScreen> {
               controller: _controller,
               textAlign: TextAlign.center,
               decoration: InputDecoration(
-                hintText: "Enter text or number",
+                hintText: 'Enter text or number',
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: themeColor),
                 ),
@@ -125,7 +125,7 @@ class _TenetScreenState extends State<TenetScreen> {
                   foregroundColor: Colors.black,
                 ),
                 child: const Text(
-                  "PROCESS",
+                  'PROCESS',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -148,11 +148,11 @@ class _TenetScreenState extends State<TenetScreen> {
       child: Column(
         children: [
           Text(
-            "ENTROPY LEVEL",
+            'ENTROPY LEVEL',
             style: TextStyle(color: color, letterSpacing: 2),
           ),
           Text(
-            "$_entropy",
+            '$_entropy',
             style: const TextStyle(fontSize: 90, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -175,7 +175,7 @@ class _TenetScreenState extends State<TenetScreen> {
   Widget _buildResultBox(Color color) {
     return Container(
       padding: const EdgeInsets.all(15),
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
