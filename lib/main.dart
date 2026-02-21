@@ -175,7 +175,7 @@ class _TenetScreenState extends State<TenetScreen> {
   Widget _buildResultBox(Color color) {
     return Container(
       padding: const EdgeInsets.all(15),
-      color: color.withValues(alpha: 0.8),
+      color: color.withValues(alpha: 0.1),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
