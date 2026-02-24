@@ -140,6 +140,41 @@ class _TenetScreenState extends State<TenetScreen> {
     );
   }
 
+  Widget _buildPrivatIcon() {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 1, 53, 88),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color.fromARGB(255, 99, 183, 47),
+              width: 4,
+            ),
+          ),
+          child: const Center(
+            child: Text(
+              '24',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'comic-sans',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEntropyBox(Color color, bool isCritical) {
     return Container(
       width: double.infinity,
@@ -147,6 +182,8 @@ class _TenetScreenState extends State<TenetScreen> {
       decoration: BoxDecoration(border: Border.all(color: color, width: 2)),
       child: Column(
         children: [
+          _buildPrivatIcon(),
+          const SizedBox(height: 15),
           Text(
             'ENTROPY LEVEL',
             style: TextStyle(color: color, letterSpacing: 2),
