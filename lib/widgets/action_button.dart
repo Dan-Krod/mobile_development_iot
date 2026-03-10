@@ -17,16 +17,13 @@ class ActionButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: ElevatedButton(
-        style: color != null 
-          ? ElevatedButton.styleFrom(backgroundColor: color) 
-          : null,
+        style: color != null
+            ? ElevatedButton.styleFrom(backgroundColor: color)
+            : null,
         onPressed: onPressed,
         child: Text(
           text.toUpperCase(),
-          style: const TextStyle(
-            letterSpacing: 2, 
-            fontWeight: FontWeight.bold
-          ),
+          style: const TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold),
         ),
       ),
     );

@@ -11,7 +11,7 @@ class CustomInput extends StatelessWidget {
     required this.controller,
     required this.icon,
     super.key,
-    this.isPassword  = false,
+    this.isPassword = false,
   });
 
   @override

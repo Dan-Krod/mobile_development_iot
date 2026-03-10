@@ -25,7 +25,7 @@ class FluidLogo extends StatelessWidget {
           ),
         ),
         Icon(
-          Icons.opacity_rounded, 
+          Icons.opacity_rounded,
           size: size * 0.6,
           color: theme.primaryColor,
         ),
@@ -33,7 +33,7 @@ class FluidLogo extends StatelessWidget {
           width: size * 0.8,
           height: size * 0.8,
           child: CircularProgressIndicator(
-            value: 0.7, 
+            value: 0.7,
             strokeWidth: 2,
             color: theme.colorScheme.secondary.withValues(alpha: 0.5),
           ),
