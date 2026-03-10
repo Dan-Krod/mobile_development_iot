@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/screens/alarms_screen.dart';
 import 'package:mobile_development_iot/screens/analytics_screen.dart';
 import 'package:mobile_development_iot/screens/control_screen.dart';
 import 'package:mobile_development_iot/screens/home_screen.dart';
@@ -28,27 +29,8 @@ class SmartFluidApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/control': (context) => const ControlScreen(),
         '/analytics': (context) => const AnalyticsScreen(),
-        '/alarms': (context) => const _PlaceholderScreen(title: 'SYSTEM ALERTS'),
+        '/alarms': (context) => const AlarmsScreen(),
       },
-    );
-  }
-}
-
-// Temporary widget for unrealised screens
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          '$title IN DEVELOPMENT',
-          style: const TextStyle(color: Colors.white24, letterSpacing: 2),
-        ),
-      ),
     );
   }
 }

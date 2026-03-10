@@ -9,10 +9,7 @@ class AnalyticsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('HISTORICAL DATA'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('HISTORICAL DATA'), centerTitle: true),
       body: Stack(
         children: [
           const TechGrid(),
@@ -27,51 +24,57 @@ class AnalyticsScreen extends StatelessWidget {
                     const Text(
                       'SENSOR TRENDS (LAST 24H)',
                       style: TextStyle(
-                        color: Colors.white54, 
-                        letterSpacing: 2, 
-                        fontSize: 10, 
-                        fontWeight: FontWeight.bold
+                        color: Colors.white54,
+                        letterSpacing: 2,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Icon(Icons.history_toggle_off_rounded, color: theme.primaryColor, size: 16),
+                    Icon(
+                      Icons.history_toggle_off_rounded,
+                      color: theme.primaryColor,
+                      size: 16,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 25),
-                
+
                 Expanded(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: theme.cardTheme.color?.withOpacity(0.6),
+                      color: theme.cardTheme.color?.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.05),
+                      ),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: CustomPaint(
                         painter: AdvancedChartPainter(
                           lineColor: theme.primaryColor,
-                          areaColor: theme.primaryColor.withOpacity(0.1),
+                          areaColor: theme.primaryColor.withValues(alpha: 0.1),
                         ),
                         child: Container(),
                       ),
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 30),
-                
+
                 _buildLegendCard(
-                  'FLUID LEVEL MONITORING', 
-                  '31.0%', 
-                  theme.primaryColor, 
-                  Icons.waves_rounded
+                  'FLUID LEVEL MONITORING',
+                  '31.0%',
+                  theme.primaryColor,
+                  Icons.waves_rounded,
                 ),
                 const SizedBox(height: 12),
                 _buildLegendCard(
-                  'MOTOR TEMPERATURE', 
-                  '24.57 °C', 
-                  Colors.orangeAccent, 
-                  Icons.thermostat_rounded
+                  'MOTOR TEMPERATURE',
+                  '24.57 °C',
+                  Colors.orangeAccent,
+                  Icons.thermostat_rounded,
                 ),
               ],
             ),
@@ -81,26 +84,42 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendCard(String label, String value, Color color, IconData icon) {
+  Widget _buildLegendCard(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: color.withOpacity(0.1)),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 15),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.white70),
+          ),
           const Spacer(),
           Text(
-            value, 
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontFamily: 'Monospace')
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Monospace',
+            ),
           ),
           const SizedBox(width: 10),
-          const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.white24),
+          const Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 12,
+            color: Colors.white24,
+          ),
         ],
       ),
     );
@@ -126,7 +145,7 @@ class AdvancedChartPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withValues(alpha: 0.05)
       ..strokeWidth = 1;
 
     for (int i = 1; i <= 5; i++) {
@@ -137,14 +156,20 @@ class AdvancedChartPainter extends CustomPainter {
     final path = Path();
     path.moveTo(0, size.height * 0.8);
     path.cubicTo(
-      size.width * 0.2, size.height * 0.85, 
-      size.width * 0.4, size.height * 0.3, 
-      size.width * 0.6, size.height * 0.5
+      size.width * 0.2,
+      size.height * 0.85,
+      size.width * 0.4,
+      size.height * 0.3,
+      size.width * 0.6,
+      size.height * 0.5,
     );
     path.cubicTo(
-      size.width * 0.8, size.height * 0.7, 
-      size.width * 0.9, size.height * 0.2, 
-      size.width, size.height * 0.4
+      size.width * 0.8,
+      size.height * 0.7,
+      size.width * 0.9,
+      size.height * 0.2,
+      size.width,
+      size.height * 0.4,
     );
 
     final fillPath = Path.from(path);

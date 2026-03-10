@@ -49,7 +49,9 @@ class AlarmItem extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w900,
-            color: isCritical ? alarmColor : Colors.white.withValues(alpha: 0.9),
+            color: isCritical
+                ? alarmColor
+                : Colors.white.withValues(alpha: 0.9),
             letterSpacing: 0.5,
           ),
         ),
