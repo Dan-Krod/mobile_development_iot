@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/screens/analytics_screen.dart';
+import 'package:mobile_development_iot/screens/control_screen.dart';
 import 'package:mobile_development_iot/screens/home_screen.dart';
 import 'package:mobile_development_iot/screens/login_screen.dart';
 import 'package:mobile_development_iot/screens/profile_screen.dart';
@@ -24,8 +26,8 @@ class SmartFluidApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
-        '/control': (context) => const _PlaceholderScreen(title: 'CONTROL UNIT'),
-        '/analytics': (context) => const _PlaceholderScreen(title: 'DATA ANALYTICS'),
+        '/control': (context) => const ControlScreen(),
+        '/analytics': (context) => const AnalyticsScreen(),
         '/alarms': (context) => const _PlaceholderScreen(title: 'SYSTEM ALERTS'),
       },
     );
