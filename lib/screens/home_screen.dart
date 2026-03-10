@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/widgets/fluid_tank_observation.dart';
+import 'package:mobile_development_iot/widgets/main_wrapper.dart';
 import 'package:mobile_development_iot/widgets/sensor_card.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -39,6 +40,8 @@ class HomeScreen extends StatelessWidget {
           _buildGlowingDivider(primaryColor),
 
           _buildSensorRow(),
+
+          const MainWrapper(primaryColor: primaryColor),
 
           const SizedBox(height: 15),
         ],
