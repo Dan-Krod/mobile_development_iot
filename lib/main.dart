@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/screens/home_screen.dart';
 import 'package:mobile_development_iot/screens/login_screen.dart';
 import 'package:mobile_development_iot/screens/profile_screen.dart';
 import 'package:mobile_development_iot/screens/register_screen.dart';
@@ -21,7 +22,7 @@ class SmartFluidApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const _PlaceholderScreen(title: 'LOGIN PAGE'),
+        '/home': (context) => const HomeScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/control': (context) => const _PlaceholderScreen(title: 'CONTROL UNIT'),
         '/analytics': (context) => const _PlaceholderScreen(title: 'DATA ANALYTICS'),
