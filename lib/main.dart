@@ -7,13 +7,21 @@ import 'package:mobile_development_iot/screens/login_screen.dart';
 import 'package:mobile_development_iot/screens/profile_screen.dart';
 import 'package:mobile_development_iot/screens/register_screen.dart';
 import 'package:mobile_development_iot/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const SmartFluidApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false; 
+
+  runApp(SmartFluidApp(isLoggedIn: isLoggedIn));
 }
 
 class SmartFluidApp extends StatelessWidget {
-  const SmartFluidApp({super.key});
+  final bool isLoggedIn;
+  
+  const SmartFluidApp({required this.isLoggedIn, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +29,7 @@ class SmartFluidApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Smart Fluid Management',
       theme: AppTheme.darkTheme,
-      initialRoute: '/',
+      initialRoute: isLoggedIn ? '/home' : '/',
       routes: {
         '/': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),

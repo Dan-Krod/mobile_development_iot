@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/services/auth_service.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/custom_input.dart';
 import 'package:mobile_development_iot/widgets/fluid_logo.dart';
@@ -58,7 +59,13 @@ class LoginScreen extends StatelessWidget {
 
                   ActionButton(
                     text: 'AUTHENTICATE',
-                    onPressed: () => Navigator.pushNamed(context, '/home'),
+                    onPressed: () async{
+                      await AuthService.login();
+
+                      if (context.mounted) {
+                        Navigator.pushReplacementNamed(context, '/home');
+                      }
+                    },
                   ),
 
                   const SizedBox(height: 20),

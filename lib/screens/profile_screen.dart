@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/services/auth_service.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/profile_tile.dart';
 
@@ -73,11 +74,17 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ActionButton(
                   text: 'TERMINATE SESSION',
-                  onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/',
-                    (r) => false,
-                  ),
+                  onPressed: () async {
+                    await AuthService.logout();
+
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/',
+                        (r) => false, 
+                      );
+                    }
+                  },
                 ),
               ),
               const SizedBox(height: 20),

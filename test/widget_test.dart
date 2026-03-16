@@ -1,30 +1,25 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:mobile_development_iot/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const SmartFluidApp());
+  testWidgets('Initial route smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(const SmartFluidApp(isLoggedIn: false));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('SMART FLUID'), findsOneWidget);
+    expect(find.text('MANAGEMENT SYSTEM'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    expect(find.text('AUTHENTICATE'), findsOneWidget);
+    
+    expect(find.text('NODE STATUS'), findsNothing);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('Session persistence smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(const SmartFluidApp(isLoggedIn: true));
+
+    await tester.pumpAndSettle();
+    expect(find.text('SMART FLUID SYSTEM'), findsOneWidget);
+    expect(find.text('NODE STATUS'), findsOneWidget);
+    
+    expect(find.text('AUTHENTICATE'), findsNothing);
   });
 }
