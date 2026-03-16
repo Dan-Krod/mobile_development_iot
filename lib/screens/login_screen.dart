@@ -59,7 +59,7 @@ class LoginScreen extends StatelessWidget {
 
                   ActionButton(
                     text: 'AUTHENTICATE',
-                    onPressed: () async{
+                    onPressed: () async {
                       await AuthService.login();
 
                       if (context.mounted) {

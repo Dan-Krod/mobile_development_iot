@@ -6,9 +6,9 @@ class AuthService {
 
   static Future<void> login() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_loginKey,true);
+    await prefs.setBool(_loginKey, true);
     debugPrint('[AUTH] Session saved: isLoggedIn = true');
-  } 
+  }
 
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();

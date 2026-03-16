@@ -9,7 +9,7 @@ void main() {
     expect(find.text('MANAGEMENT SYSTEM'), findsOneWidget);
 
     expect(find.text('AUTHENTICATE'), findsOneWidget);
-    
+
     expect(find.text('NODE STATUS'), findsNothing);
   });
 
@@ -19,7 +19,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('SMART FLUID SYSTEM'), findsOneWidget);
     expect(find.text('NODE STATUS'), findsOneWidget);
-    
+
     expect(find.text('AUTHENTICATE'), findsNothing);
   });
 }

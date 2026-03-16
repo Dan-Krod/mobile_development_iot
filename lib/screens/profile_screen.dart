@@ -81,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/',
-                        (r) => false, 
+                        (r) => false,
                       );
                     }
                   },

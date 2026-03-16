@@ -13,14 +13,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
-  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false; 
+  final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
   runApp(SmartFluidApp(isLoggedIn: isLoggedIn));
 }
 
 class SmartFluidApp extends StatelessWidget {
   final bool isLoggedIn;
-  
+
   const SmartFluidApp({required this.isLoggedIn, super.key});
 
   @override
