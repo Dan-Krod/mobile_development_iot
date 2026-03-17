@@ -1,20 +1,67 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_development_iot/services/auth_service.dart';
+import 'package:mobile_development_iot/repositories/auth_repository.dart';
+import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/custom_input.dart';
 import 'package:mobile_development_iot/widgets/fluid_logo.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passController = TextEditingController();
+
+  final IAuthRepository _authRepository = SharedPrefsAuthRepository();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final bool success = await _authRepository.login(
+        _emailController.text.trim(),
+        _passController.text,
+      );
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ ACCESS GRANTED. WELCOME BACK.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ INVALID OPERATOR ID OR SECURITY KEY'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final emailController = TextEditingController();
-    final passController = TextEditingController();
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: SizedBox(
+      body: Form(
+        key: _formKey,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -43,30 +90,24 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 50),
 
                   CustomInput(
-                    label: 'OPERATOR ID',
-                    controller: emailController,
+                    label: 'OPERATOR EMAIL',
+                    controller: _emailController,
                     icon: Icons.badge_outlined,
+                    validator: Validators.validateEmail,
                   ),
                   const SizedBox(height: 15),
                   CustomInput(
                     label: 'SECURITY KEY',
-                    controller: passController,
+                    controller: _passController,
                     icon: Icons.key_rounded,
                     isPassword: true,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Enter key' : null,
                   ),
 
                   const SizedBox(height: 30),
 
-                  ActionButton(
-                    text: 'AUTHENTICATE',
-                    onPressed: () async {
-                      await AuthService.login();
-
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
-                    },
-                  ),
+                  ActionButton(text: 'AUTHENTICATE', onPressed: _handleLogin),
 
                   const SizedBox(height: 20),
 
