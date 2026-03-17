@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/widgets/fluid_tank.dart';
 import 'package:mobile_development_iot/widgets/hud_brackets.dart';
 import 'package:mobile_development_iot/widgets/hud_corner.dart';
+import 'package:mobile_development_iot/widgets/hud_scanner.dart';
 
 class ObservationBay extends StatelessWidget {
   final Color primaryColor;
@@ -25,6 +26,7 @@ class ObservationBay extends StatelessWidget {
       child: Stack(
         children: [
           _buildBlueprint(),
+          const HUDScanner(color: Color.fromARGB(255, 37, 145, 246)),
           const HUDBrackets(color: Colors.white24),
           Center(
             child: GestureDetector(
