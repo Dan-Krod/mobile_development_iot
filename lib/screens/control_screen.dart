@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_development_iot/models/tank_model.dart'; 
+import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/control_toggle.dart';
-
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});

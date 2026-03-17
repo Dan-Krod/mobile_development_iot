@@ -19,9 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
-  final _hardwareController = TextEditingController(
-    text: 'ESP32-S3',
-  ); 
+  final _hardwareController = TextEditingController(text: 'ESP32-S3');
   final _dbController = TextEditingController(text: 'Shared Preferences');
 
   final IAuthRepository _authRepository = SharedPrefsAuthRepository();
@@ -38,12 +36,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
-
       final newUser = UserModel(
         fullName: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passController.text,
-        hardware: _hardwareController.text.trim(), 
+        hardware: _hardwareController.text.trim(),
         database: _dbController.text.trim(),
       );
 

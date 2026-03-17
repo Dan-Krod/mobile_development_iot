@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class AdvancedChartPainter extends CustomPainter {
   final Color lineColor;
   final Color areaColor;

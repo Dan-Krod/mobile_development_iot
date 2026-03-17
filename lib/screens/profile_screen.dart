@@ -81,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (mounted) {
                 if (!context.mounted) return;
                 Navigator.pop(context);
-                _loadUserData(); 
+                _loadUserData();
               }
             },
             child: const Text(

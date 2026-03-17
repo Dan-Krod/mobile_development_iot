@@ -53,7 +53,7 @@ class AnalyticsScreen extends StatelessWidget {
                     ),
                     Icon(
                       Icons.history_toggle_off_rounded,
-                      color: tankColor, 
+                      color: tankColor,
                       size: 16,
                     ),
                   ],
@@ -73,7 +73,7 @@ class AnalyticsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       child: CustomPaint(
                         painter: AdvancedChartPainter(
-                          lineColor: tankColor, 
+                          lineColor: tankColor,
                           areaColor: tankColor.withValues(alpha: 0.1),
                         ),
                         child: Container(),

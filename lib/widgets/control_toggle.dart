@@ -6,7 +6,7 @@ class ControlToggle extends StatelessWidget {
   final IconData icon;
   final void Function(bool) onChanged;
   final bool isDisabled;
-  final Color? activeColor; 
+  final Color? activeColor;
 
   const ControlToggle({
     required this.label,
@@ -15,7 +15,7 @@ class ControlToggle extends StatelessWidget {
     required this.onChanged,
     super.key,
     this.isDisabled = false,
-    this.activeColor, 
+    this.activeColor,
   });
 
   @override
@@ -87,7 +87,7 @@ class ControlToggle extends StatelessWidget {
             Switch(
               value: value,
               onChanged: isDisabled ? null : onChanged,
-              activeThumbColor: effectiveColor, 
+              activeThumbColor: effectiveColor,
               activeTrackColor: effectiveColor.withValues(alpha: 0.2),
             ),
           ],

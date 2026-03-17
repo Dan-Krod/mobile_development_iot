@@ -31,10 +31,7 @@ class TankDetailsScreen extends StatelessWidget {
         children: [
           Expanded(
             flex: 7,
-            child: ObservationBay(
-              primaryColor: tankColor, 
-              onTankTap: () {},
-            ),
+            child: ObservationBay(primaryColor: tankColor, onTankTap: () {}),
           ),
 
           _buildGlowingDivider(tankColor),
