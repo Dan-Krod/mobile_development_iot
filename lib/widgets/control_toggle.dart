@@ -6,6 +6,7 @@ class ControlToggle extends StatelessWidget {
   final IconData icon;
   final void Function(bool) onChanged;
   final bool isDisabled;
+  final Color? activeColor; 
 
   const ControlToggle({
     required this.label,
@@ -14,12 +15,14 @@ class ControlToggle extends StatelessWidget {
     required this.onChanged,
     super.key,
     this.isDisabled = false,
+    this.activeColor, 
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final activeColor = theme.primaryColor;
+
+    final Color effectiveColor = activeColor ?? theme.primaryColor;
 
     return Opacity(
       opacity: isDisabled ? 0.4 : 1.0,
@@ -30,7 +33,9 @@ class ControlToggle extends StatelessWidget {
           color: theme.cardTheme.color,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: value ? activeColor.withValues(alpha: 0.3) : Colors.white10,
+            color: value
+                ? effectiveColor.withValues(alpha: 0.3)
+                : Colors.white10,
             width: 1.5,
           ),
         ),
@@ -40,13 +45,13 @@ class ControlToggle extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: value
-                    ? activeColor.withValues(alpha: 0.1)
+                    ? effectiveColor.withValues(alpha: 0.1)
                     : Colors.white.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: value ? activeColor : Colors.white24,
+                color: value ? effectiveColor : Colors.white24,
                 size: 24,
               ),
             ),
@@ -70,7 +75,7 @@ class ControlToggle extends StatelessWidget {
                         : (value ? 'RUNNING / OPEN' : 'STOPPED / CLOSED'),
                     style: TextStyle(
                       color: value && !isDisabled
-                          ? activeColor
+                          ? effectiveColor
                           : Colors.white24,
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
@@ -82,8 +87,8 @@ class ControlToggle extends StatelessWidget {
             Switch(
               value: value,
               onChanged: isDisabled ? null : onChanged,
-              activeThumbColor: activeColor,
-              activeTrackColor: activeColor.withValues(alpha: 0.2),
+              activeThumbColor: effectiveColor, 
+              activeTrackColor: effectiveColor.withValues(alpha: 0.2),
             ),
           ],
         ),

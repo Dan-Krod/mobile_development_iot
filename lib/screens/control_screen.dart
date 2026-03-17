@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/models/tank_model.dart'; 
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/control_toggle.dart';
+
 
 class ControlScreen extends StatefulWidget {
   const ControlScreen({super.key});
@@ -17,8 +19,27 @@ class _ControlScreenState extends State<ControlScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final dynamic args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args == null) {
+      return const Scaffold(
+        body: Center(child: Text('ERROR: No data received via Navigator')),
+      );
+    }
+
+    final tank = args as TankModel;
+    final primaryColor = Color(tank.colorValue);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('MANUAL OVERRIDE')),
+      backgroundColor: const Color(0xFF020617),
+      appBar: AppBar(
+        title: Text(
+          '${tank.title} OVERRIDE',
+          style: const TextStyle(fontSize: 12, letterSpacing: 3),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+      ),
       body: Stack(
         children: [
           Padding(
@@ -37,7 +58,7 @@ class _ControlScreenState extends State<ControlScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                _buildModeSelector(),
+                _buildModeSelector(primaryColor),
 
                 const SizedBox(height: 30),
 
@@ -45,6 +66,7 @@ class _ControlScreenState extends State<ControlScreen> {
                   label: 'Main System Unit',
                   icon: Icons.power_rounded,
                   value: _systemPower,
+                  activeColor: primaryColor,
                   onChanged: (val) => setState(() => _systemPower = val),
                 ),
 
@@ -57,6 +79,7 @@ class _ControlScreenState extends State<ControlScreen> {
                   label: 'Water Pump Station',
                   icon: Icons.settings_input_component_rounded,
                   value: _pumpState,
+                  activeColor: primaryColor,
                   isDisabled: !_systemPower || _isAutoMode,
                   onChanged: (val) => setState(() => _pumpState = val),
                 ),
@@ -65,6 +88,7 @@ class _ControlScreenState extends State<ControlScreen> {
                   label: 'Solenoid Valve',
                   icon: Icons.water_drop_outlined,
                   value: _valveState,
+                  activeColor: primaryColor,
                   isDisabled: !_systemPower || _isAutoMode,
                   onChanged: (val) => setState(() => _valveState = val),
                 ),
@@ -79,6 +103,8 @@ class _ControlScreenState extends State<ControlScreen> {
                     _systemPower = false;
                   }),
                 ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -87,7 +113,7 @@ class _ControlScreenState extends State<ControlScreen> {
     );
   }
 
-  Widget _buildModeSelector() {
+  Widget _buildModeSelector(Color activeColor) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(4),
@@ -97,21 +123,21 @@ class _ControlScreenState extends State<ControlScreen> {
       ),
       child: Row(
         children: [
-          _modeButton('MANUAL', !_isAutoMode),
-          _modeButton('AUTOMATION', _isAutoMode),
+          _modeButton('MANUAL', !_isAutoMode, activeColor),
+          _modeButton('AUTOMATION', _isAutoMode, activeColor),
         ],
       ),
     );
   }
 
-  Widget _modeButton(String title, bool active) {
+  Widget _modeButton(String title, bool active, Color activeColor) {
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _isAutoMode = title == 'AUTOMATION'),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: active ? Theme.of(context).primaryColor : Colors.transparent,
+            color: active ? activeColor : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(

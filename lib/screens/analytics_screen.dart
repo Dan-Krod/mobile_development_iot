@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_development_iot/models/tank_model.dart';
+import 'package:mobile_development_iot/widgets/chart_painter.dart';
 import 'package:mobile_development_iot/widgets/tech_grid.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -6,10 +8,29 @@ class AnalyticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args == null || args is! TankModel) {
+      Future.microtask(() {
+        if (context.mounted) Navigator.pushReplacementNamed(context, '/home');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final tank = args;
+    final tankColor = Color(tank.colorValue);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('HISTORICAL DATA'), centerTitle: true),
+      backgroundColor: const Color(0xFF020617),
+      appBar: AppBar(
+        title: Text(
+          '${tank.title} ANALYTICS',
+          style: const TextStyle(fontSize: 12, letterSpacing: 3),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+      ),
       body: Stack(
         children: [
           const TechGrid(),
@@ -32,7 +53,7 @@ class AnalyticsScreen extends StatelessWidget {
                     ),
                     Icon(
                       Icons.history_toggle_off_rounded,
-                      color: theme.primaryColor,
+                      color: tankColor, 
                       size: 16,
                     ),
                   ],
@@ -52,8 +73,8 @@ class AnalyticsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       child: CustomPaint(
                         painter: AdvancedChartPainter(
-                          lineColor: theme.primaryColor,
-                          areaColor: theme.primaryColor.withValues(alpha: 0.1),
+                          lineColor: tankColor, 
+                          areaColor: tankColor.withValues(alpha: 0.1),
                         ),
                         child: Container(),
                       ),
@@ -65,8 +86,8 @@ class AnalyticsScreen extends StatelessWidget {
 
                 _buildLegendCard(
                   'FLUID LEVEL MONITORING',
-                  '31.0%',
-                  theme.primaryColor,
+                  '${(tank.currentLevel * 100).toInt()}%',
+                  tankColor,
                   Icons.waves_rounded,
                 ),
                 const SizedBox(height: 12),
@@ -76,6 +97,7 @@ class AnalyticsScreen extends StatelessWidget {
                   Colors.orangeAccent,
                   Icons.thermostat_rounded,
                 ),
+                const Spacer(),
               ],
             ),
           ),
@@ -124,63 +146,4 @@ class AnalyticsScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class AdvancedChartPainter extends CustomPainter {
-  final Color lineColor;
-  final Color areaColor;
-
-  AdvancedChartPainter({required this.lineColor, required this.areaColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = lineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..color = areaColor
-      ..style = PaintingStyle.fill;
-
-    final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..strokeWidth = 1;
-
-    for (int i = 1; i <= 5; i++) {
-      final double y = size.height * (i / 6);
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.8);
-    path.cubicTo(
-      size.width * 0.2,
-      size.height * 0.85,
-      size.width * 0.4,
-      size.height * 0.3,
-      size.width * 0.6,
-      size.height * 0.5,
-    );
-    path.cubicTo(
-      size.width * 0.8,
-      size.height * 0.7,
-      size.width * 0.9,
-      size.height * 0.2,
-      size.width,
-      size.height * 0.4,
-    );
-
-    final fillPath = Path.from(path);
-    fillPath.lineTo(size.width, size.height);
-    fillPath.lineTo(0, size.height);
-    fillPath.close();
-
-    canvas.drawPath(fillPath, fillPaint);
-    canvas.drawPath(path, linePaint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
