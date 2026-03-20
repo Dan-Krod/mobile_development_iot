@@ -2,52 +2,48 @@ import 'package:flutter/material.dart';
 
 class MainWrapper extends StatelessWidget {
   final Color primaryColor;
+  final VoidCallback? onAddPressed;
 
-  const MainWrapper({required this.primaryColor, super.key});
+  const MainWrapper({required this.primaryColor, super.key, this.onAddPressed});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 70,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color: const Color(0xFF0F172A).withValues(alpha: 0.8),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navIcon(context, Icons.analytics_outlined, '/analytics'),
-          _navIcon(context, Icons.tune_rounded, '/control'),
-          _buildMainBtn(),
-          _navIcon(context, Icons.notifications_none_rounded, '/alarms'),
-          _navIcon(context, Icons.person_outline_rounded, '/profile'),
+          GestureDetector(
+            onTap: onAddPressed,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withValues(alpha: 0.4),
+                    blurRadius: 15,
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            ),
+          ),
+
+          IconButton(
+            icon: const Icon(
+              Icons.person_outline_rounded,
+              color: Colors.white54,
+            ),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _navIcon(BuildContext context, IconData icon, String route) {
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, route),
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Icon(icon, color: Colors.white24, size: 26),
-      ),
-    );
-  }
-
-  Widget _buildMainBtn() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: primaryColor.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
-      ),
-      child: Icon(Icons.grid_view_rounded, color: primaryColor, size: 24),
     );
   }
 }

@@ -5,6 +5,7 @@ class CustomInput extends StatelessWidget {
   final TextEditingController controller;
   final bool isPassword;
   final IconData icon;
+  final String? Function(String?)? validator;
 
   const CustomInput({
     required this.label,
@@ -12,6 +13,7 @@ class CustomInput extends StatelessWidget {
     required this.icon,
     super.key,
     this.isPassword = false,
+    this.validator,
   });
 
   @override
@@ -21,6 +23,7 @@ class CustomInput extends StatelessWidget {
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
+        validator: validator,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, size: 20),
