@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/repositories/tank_repository.dart';
 import 'package:mobile_development_iot/widgets/main_wrapper.dart';
+import 'package:mobile_development_iot/widgets/shake_simulation_wrapper.dart';
 import 'package:mobile_development_iot/widgets/tech_grid.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -132,31 +133,32 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
-      body: Stack(
-        children: [
-          const TechGrid(),
-
-          SafeArea(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _tanks.isEmpty
-                      ? _buildEmptyState()
-                      : _buildTankGrid(),
-                ),
-
-                MainWrapper(
-                  primaryColor: primaryColor,
-                  onAddPressed: _addNewTank,
-                ),
-                const SizedBox(height: 10),
-              ],
+      body: ShakeSimulationWrapper(
+        tanks: _tanks,
+        child: Stack(
+          children: [
+            const TechGrid(),
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _tanks.isEmpty
+                        ? _buildEmptyState()
+                        : _buildTankGrid(),
+                  ),
+                  MainWrapper(
+                    primaryColor: primaryColor,
+                    onAddPressed: _addNewTank,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
