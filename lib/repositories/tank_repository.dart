@@ -1,7 +1,6 @@
 import 'dart:convert';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class ITankRepository {
   Future<List<TankModel>> getTanks();
@@ -10,13 +9,13 @@ abstract class ITankRepository {
   Future<void> deleteTank(String id);
 }
 
-class SharedPrefsTankRepository implements ITankRepository {
+class SecureTankRepository implements ITankRepository {
   static const String _tanksKey = 'system_tanks';
+  final _storage = const FlutterSecureStorage();
 
   @override
   Future<List<TankModel>> getTanks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? tanksJson = prefs.getString(_tanksKey);
+    final String? tanksJson = await _storage.read(key: _tanksKey);
 
     if (tanksJson == null) return [];
 
@@ -28,9 +27,8 @@ class SharedPrefsTankRepository implements ITankRepository {
 
   @override
   Future<void> saveTanks(List<TankModel> tanks) async {
-    final prefs = await SharedPreferences.getInstance();
     final String encoded = jsonEncode(tanks.map((t) => t.toJson()).toList());
-    await prefs.setString(_tanksKey, encoded);
+    await _storage.write(key: _tanksKey, value: encoded);
   }
 
   @override
