@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
+import 'package:mobile_development_iot/providers/connectivity_provider.dart';
+import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/repositories/tank_repository.dart';
 import 'package:mobile_development_iot/widgets/main_wrapper.dart';
 import 'package:mobile_development_iot/widgets/shake_simulation_wrapper.dart';
 import 'package:mobile_development_iot/widgets/tech_grid.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ITankRepository _tankRepository = SharedPrefsTankRepository();
+  final ITankRepository _tankRepository = SecureTankRepository();
   List<TankModel> _tanks = [];
   bool _isLoading = true;
   final Color primaryColor = const Color(0xFF38BDF8);
@@ -38,6 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
     int selectedColor = 0xFF38BDF8;
     final formKey = GlobalKey<FormState>();
 
+    final bool hasHardwareNode = _tanks.any((t) => t.isHardwareBound);
+    bool bindToHardware = !hasHardwareNode;
+
     await showDialog<void>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -45,12 +51,17 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: const Color(0xFF0F172A),
           title: const Text(
             'REGISTER NEW NODE',
-            style: TextStyle(color: Colors.white, fontSize: 14),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              letterSpacing: 1,
+            ),
           ),
           content: Form(
             key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
                   controller: titleController,
@@ -58,9 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: const InputDecoration(
                     labelText: 'NODE NAME',
                     labelStyle: TextStyle(color: Colors.white38),
-                    errorStyle: TextStyle(
-                      color: Colors.redAccent,
-                      fontSize: 10,
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white10),
                     ),
                   ),
                   validator: (value) => (value == null || value.isEmpty)
@@ -89,26 +99,84 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                       .toList(),
                 ),
+                const SizedBox(height: 25),
+
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: bindToHardware
+                          ? Colors.green.withValues(alpha: 0.5)
+                          : Colors.white10,
+                    ),
+                  ),
+                  child: hasHardwareNode
+                      ? const Text(
+                          'HARDWARE ALREADY BOUND.'
+                          'This will be created as a Virtual Simulated Node.',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 10,
+                            height: 1.5,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'BIND TO ESP32-S3',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Switch(
+                              value: bindToHardware,
+                              activeThumbColor: Colors.green,
+                              onChanged: (val) =>
+                                  setDialogState(() => bindToHardware = val),
+                            ),
+                          ],
+                        ),
+                ),
               ],
             ),
           ),
-
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: Colors.white38),
+              ),
+            ),
+            TextButton(
               onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+
                 final newTank = TankModel(
                   id: DateTime.now().toString(),
-                  title: titleController.text,
+                  title: titleController.text.trim(),
                   capacity: double.tryParse(capacityController.text) ?? 100,
                   currentLevel: 0.4,
                   colorValue: selectedColor,
+                  isHardwareBound: bindToHardware,
                 );
+
                 await _tankRepository.addTank(newTank);
                 if (!context.mounted) return;
                 Navigator.pop(context);
                 _loadTanks();
               },
-              child: const Text('INSTALL'),
+              child: const Text(
+                'INSTALL',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -131,6 +199,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isOnline = context.watch<ConnectivityProvider>().isOnline;
+
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
       body: ShakeSimulationWrapper(
@@ -141,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SafeArea(
               child: Column(
                 children: [
-                  _buildHeader(),
+                  _buildHeader(isOnline),
                   Expanded(
                     child: _isLoading
                         ? const Center(child: CircularProgressIndicator())
@@ -150,8 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         : _buildTankGrid(),
                   ),
                   MainWrapper(
-                    primaryColor: primaryColor,
-                    onAddPressed: _addNewTank,
+                    primaryColor: isOnline ? primaryColor : Colors.grey,
+                    onAddPressed: isOnline ? _addNewTank : null,
                   ),
                   const SizedBox(height: 10),
                 ],
@@ -163,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isOnline) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -172,12 +242,18 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.radar_rounded, color: Colors.white24, size: 20),
+              Icon(
+                isOnline ? Icons.radar_rounded : Icons.wifi_off_rounded,
+                color: isOnline ? Colors.white24 : Colors.redAccent,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Text(
                 'SMART FLUID MANAGEMENT',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: isOnline
+                      ? Colors.white.withValues(alpha: 0.9)
+                      : Colors.redAccent,
                   letterSpacing: 4,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -185,12 +261,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 4),
-          const Text(
-            'DISPATCHER CENTER',
+          Text(
+            isOnline ? 'DISPATCHER CENTER' : 'OFFLINE MODE : LOCAL DATA ONLY',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white38,
+              color: isOnline
+                  ? Colors.white38
+                  : Colors.redAccent.withValues(alpha: 0.5),
               letterSpacing: 8,
               fontSize: 10,
               fontWeight: FontWeight.w500,
@@ -249,6 +327,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTankCard(TankModel tank, Color color) {
+    final mqtt = context.watch<MqttProvider>();
+    final isHardware = tank.isHardwareBound;
+
     return Stack(
       children: [
         GestureDetector(
@@ -270,20 +351,38 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Icon(Icons.hub_outlined, color: color, size: 20)],
+                  children: [
+                    Icon(
+                      isHardware ? Icons.memory : Icons.hub_outlined,
+                      color: color,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isHardware
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.white10,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        isHardware ? 'ESP32' : 'VIRTUAL',
+                        style: TextStyle(
+                          color: isHardware ? Colors.green : Colors.white38,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'STATION NAME:',
-                      style: TextStyle(
-                        color: Colors.white24,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     Text(
                       tank.title.toUpperCase(),
                       maxLines: 1,
@@ -296,14 +395,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${(tank.currentLevel * 100).toInt()}% LOADED',
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${(tank.currentLevel * 100).toInt()}% LOADED',
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        if (isHardware && mqtt.isConnected)
+                          Text(
+                            '${mqtt.temp.toStringAsFixed(1)}°C',
+                            style: const TextStyle(
+                              color: Colors.orangeAccent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
