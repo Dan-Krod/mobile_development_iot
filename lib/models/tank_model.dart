@@ -5,6 +5,7 @@ class TankModel {
   final double capacity;
   final String unit;
   final int colorValue;
+  final bool isHardwareBound;
 
   TankModel({
     required this.id,
@@ -13,6 +14,7 @@ class TankModel {
     required this.capacity,
     this.unit = 'L',
     this.colorValue = 0xFF38BDF8,
+    this.isHardwareBound = false,
   });
 
   TankModel copyWith({
@@ -21,6 +23,7 @@ class TankModel {
     double? capacity,
     String? unit,
     int? colorValue,
+    bool? isHardwareBound,
   }) {
     return TankModel(
       id: id,
@@ -29,6 +32,7 @@ class TankModel {
       capacity: capacity ?? this.capacity,
       unit: unit ?? this.unit,
       colorValue: colorValue ?? this.colorValue,
+      isHardwareBound: isHardwareBound ?? this.isHardwareBound,
     );
   }
 
@@ -39,6 +43,7 @@ class TankModel {
     'capacity': capacity,
     'unit': unit,
     'colorValue': colorValue,
+    'isHardwareBound': isHardwareBound,
   };
 
   factory TankModel.fromJson(Map<String, dynamic> json) => TankModel(
@@ -48,5 +53,6 @@ class TankModel {
     capacity: (json['capacity'] as num).toDouble(),
     unit: json['unit'] as String,
     colorValue: json['colorValue'] as int? ?? 0xFF38BDF8,
+    isHardwareBound: json['isHardwareBound'] as bool? ?? false,
   );
 }

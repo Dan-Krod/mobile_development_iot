@@ -26,6 +26,6 @@ class UserModel {
     email: json['email'] as String,
     password: json['password'] as String,
     hardware: json['hardware'] as String? ?? 'ESP32-S3',
-    database: json['database'] as String? ?? 'Shared Preferences',
+    database: json['database'] as String? ?? 'Secure Flutter Storage',
   );
 }

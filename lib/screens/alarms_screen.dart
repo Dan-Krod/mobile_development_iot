@@ -13,7 +13,7 @@ class AlarmsScreen extends StatefulWidget {
 }
 
 class _AlarmsScreenState extends State<AlarmsScreen> {
-  final IAlarmRepository _repository = SharedPrefsAlarmRepository();
+  final IAlarmRepository _repository = SecureAlarmRepository();
   List<AlarmModel> _alarms = [];
   bool _isLoading = true;
 
