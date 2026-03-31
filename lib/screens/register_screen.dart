@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
-import 'package:mobile_development_iot/repositories/auth_repository.dart';
+import 'package:mobile_development_iot/providers/auth_provider.dart';
+import 'package:mobile_development_iot/providers/connectivity_provider.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/custom_input.dart';
 import 'package:mobile_development_iot/widgets/fluid_logo.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,9 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   final _hardwareController = TextEditingController(text: 'ESP32-S3');
-  final _dbController = TextEditingController(text: 'Shared Preferences');
-
-  final IAuthRepository _authRepository = SharedPrefsAuthRepository();
+  final _dbController = TextEditingController(text: 'Secure Storage');
 
   @override
   void dispose() {
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         database: _dbController.text.trim(),
       );
 
-      await _authRepository.registerUser(newUser);
+      await context.read<AuthProvider>().register(newUser);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,9 +58,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _showOfflineError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('❌ ACTION BLOCKED: NO INTERNET CONNECTION'),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final isOnline = context.watch<ConnectivityProvider>().isOnline;
 
     return Scaffold(
       appBar: AppBar(
@@ -150,8 +162,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 30),
 
                   ActionButton(
-                    text: 'CREATE ACCOUNT',
-                    onPressed: _handleRegister,
+                    text: isOnline ? 'CREATE ACCOUNT' : 'NO CONNECTION',
+                    onPressed: isOnline ? _handleRegister : _showOfflineError,
                   ),
 
                   TextButton(

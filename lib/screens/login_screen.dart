@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_development_iot/repositories/auth_repository.dart';
+import 'package:mobile_development_iot/providers/auth_provider.dart';
+import 'package:mobile_development_iot/providers/connectivity_provider.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/custom_input.dart';
 import 'package:mobile_development_iot/widgets/fluid_logo.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,8 +19,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
 
-  final IAuthRepository _authRepository = SharedPrefsAuthRepository();
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      final bool success = await _authRepository.login(
+      final bool success = await context.read<AuthProvider>().login(
         _emailController.text.trim(),
         _passController.text,
       );
@@ -55,9 +55,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _showOfflineError() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('❌ ACTION BLOCKED: NO INTERNET CONNECTION'),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final isOnline = context.watch<ConnectivityProvider>().isOnline;
 
     return Scaffold(
       body: Form(
@@ -107,12 +119,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 30),
 
-                  ActionButton(text: 'AUTHENTICATE', onPressed: _handleLogin),
+                  ActionButton(
+                    text: isOnline ? 'AUTHENTICATE' : 'NO CONNECTION',
+                    onPressed: isOnline ? _handleLogin : _showOfflineError,
+                  ),
 
                   const SizedBox(height: 20),
 
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    onPressed: isOnline
+                        ? () => Navigator.pushNamed(context, '/register')
+                        : _showOfflineError,
                     child: RichText(
                       text: TextSpan(
                         text: 'New Engineer? ',
@@ -121,7 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextSpan(
                             text: 'REGISTER',
                             style: TextStyle(
-                              color: theme.primaryColor,
+                              color: isOnline
+                                  ? theme.primaryColor
+                                  : Colors.grey,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

@@ -1,7 +1,6 @@
 import 'dart:convert';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobile_development_iot/models/alarm_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class IAlarmRepository {
   Future<List<AlarmModel>> getAlarmsByTank(String tankId);
@@ -9,13 +8,13 @@ abstract class IAlarmRepository {
   Future<void> addAlarm(AlarmModel alarm);
 }
 
-class SharedPrefsAlarmRepository implements IAlarmRepository {
+class SecureAlarmRepository implements IAlarmRepository {
   static const String _storageKey = 'system_alarms';
+  final _storage = const FlutterSecureStorage();
 
   @override
   Future<List<AlarmModel>> getAlarmsByTank(String tankId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString(_storageKey);
+    final String? data = await _storage.read(key: _storageKey);
     if (data == null) return [];
 
     final List<dynamic> decoded = jsonDecode(data) as List<dynamic>;
@@ -27,8 +26,7 @@ class SharedPrefsAlarmRepository implements IAlarmRepository {
 
   @override
   Future<void> clearAlarms(String tankId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString(_storageKey);
+    final String? data = await _storage.read(key: _storageKey);
     if (data == null) return;
 
     final List<dynamic> decoded = jsonDecode(data) as List<dynamic>;
@@ -38,17 +36,17 @@ class SharedPrefsAlarmRepository implements IAlarmRepository {
         .map((a) => a.toJson())
         .toList();
 
-    await prefs.setString(_storageKey, jsonEncode(updated));
+    await _storage.write(key: _storageKey, value: jsonEncode(updated));
   }
 
   @override
   Future<void> addAlarm(AlarmModel alarm) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? data = prefs.getString(_storageKey);
+    final String? data = await _storage.read(key: _storageKey);
     final List<dynamic> current = data != null
         ? jsonDecode(data) as List<dynamic>
         : [];
+
     current.add(alarm.toJson());
-    await prefs.setString(_storageKey, jsonEncode(current));
+    await _storage.write(key: _storageKey, value: jsonEncode(current));
   }
 }

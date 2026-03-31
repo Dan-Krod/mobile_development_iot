@@ -24,7 +24,7 @@ class ShakeSimulationWrapper extends StatefulWidget {
 
 class _ShakeSimulationWrapperState extends State<ShakeSimulationWrapper> {
   late ShakeDetector detector;
-  final IAlarmRepository _alarmRepository = SharedPrefsAlarmRepository();
+  final IAlarmRepository _alarmRepository = SecureAlarmRepository();
   Color _debugColor = Colors.transparent;
 
   @override
