@@ -8,6 +8,8 @@ abstract class IAuthRepository {
   Future<UserModel?> getCurrentUser();
   Future<void> logout();
   Future<void> deleteAccount();
+  Future<void> saveOperationalHours(int start, int end);
+  Future<Map<String, int>> getOperationalHours();
 }
 
 class SecureAuthRepository implements IAuthRepository {
@@ -58,5 +60,22 @@ class SecureAuthRepository implements IAuthRepository {
   @override
   Future<void> deleteAccount() async {
     await _storage.deleteAll();
+  }
+
+  @override
+  Future<void> saveOperationalHours(int start, int end) async {
+    await _storage.write(key: 'op_start', value: start.toString());
+    await _storage.write(key: 'op_end', value: end.toString());
+  }
+
+  @override
+  Future<Map<String, int>> getOperationalHours() async {
+    final startStr = await _storage.read(key: 'op_start');
+    final endStr = await _storage.read(key: 'op_end');
+
+    return {
+      'start': int.tryParse(startStr ?? '10') ?? 10,
+      'end': int.tryParse(endStr ?? '22') ?? 22,
+    };
   }
 }

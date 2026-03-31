@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -11,10 +12,36 @@ class MqttProvider extends ChangeNotifier {
   bool pumpStatus = false;
   bool localOverride = false;
   bool systemActive = false;
-
   bool isConnected = false;
 
+  int startHour = 10;
+  int endHour = 22;
+  Timer? _timeGuardTimer;
+
+  bool get isOperationalTime {
+    final now = DateTime.now();
+    return now.hour >= startHour && now.hour < endHour;
+  }
+
+  void setOperationalHours(int start, int end) {
+    startHour = start;
+    endHour = end;
+    notifyListeners();
+
+    if (!isOperationalTime && isConnected) {
+      debugPrint('[TIME GUARD] Графік змінено. Негайне відключення!');
+      disconnect();
+    }
+  }
+
   Future<void> connect(String brokerIp) async {
+    if (!isOperationalTime) {
+      debugPrint(
+        '[ACCESS DENIED] Поза робочими годинами ($startHour:00 - $endHour:00)',
+      );
+      return;
+    }
+
     if (isConnected && client != null) return;
 
     client = MqttServerClient(
@@ -26,6 +53,7 @@ class MqttProvider extends ChangeNotifier {
 
     client!.onDisconnected = () {
       isConnected = false;
+      _timeGuardTimer?.cancel();
       debugPrint('❌ MQTT Відключено від брокера');
       notifyListeners();
     };
@@ -49,6 +77,8 @@ class MqttProvider extends ChangeNotifier {
         _parseEsp32Data(payload);
       });
 
+      _startOperationGuard();
+
       notifyListeners();
     } catch (e) {
       debugPrint('🚨 MQTT Помилка підключення: $e');
@@ -59,9 +89,20 @@ class MqttProvider extends ChangeNotifier {
   }
 
   void disconnect() {
+    _timeGuardTimer?.cancel();
     client?.disconnect();
     isConnected = false;
     notifyListeners();
+  }
+
+  void _startOperationGuard() {
+    _timeGuardTimer?.cancel();
+    _timeGuardTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (!isOperationalTime && isConnected) {
+        debugPrint('[TIME GUARD] Робоча зміна закінчилась. Відключення...');
+        disconnect();
+      }
+    });
   }
 
   void _parseEsp32Data(String jsonString) {
@@ -104,5 +145,11 @@ class MqttProvider extends ChangeNotifier {
       builder.payload!,
     );
     debugPrint('📤 MQTT Відправлено: {$key: $value}');
+  }
+
+  @override
+  void dispose() {
+    _timeGuardTimer?.cancel();
+    super.dispose();
   }
 }

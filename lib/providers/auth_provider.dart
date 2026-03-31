@@ -8,6 +8,9 @@ class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
   bool _isLoggedIn = false;
 
+  int shiftStartHour = 10;
+  int shiftEndHour = 22;
+
   AuthProvider(this._authRepository);
 
   UserModel? get currentUser => _currentUser;
@@ -16,6 +19,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loadSession() async {
     _currentUser = await _authRepository.getCurrentUser();
     _isLoggedIn = _currentUser != null;
+
+    await loadOperationalHours();
+
     notifyListeners();
   }
 
@@ -41,6 +47,20 @@ class AuthProvider extends ChangeNotifier {
     await _authRepository.deleteAccount();
     _currentUser = null;
     _isLoggedIn = false;
+    notifyListeners();
+  }
+
+  Future<void> loadOperationalHours() async {
+    final hours = await _authRepository.getOperationalHours();
+    shiftStartHour = hours['start'] ?? 10;
+    shiftEndHour = hours['end'] ?? 22;
+    notifyListeners();
+  }
+
+  Future<void> saveOperationalHours(int start, int end) async {
+    await _authRepository.saveOperationalHours(start, end);
+    shiftStartHour = start;
+    shiftEndHour = end;
     notifyListeners();
   }
 }

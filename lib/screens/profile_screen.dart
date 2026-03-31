@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/providers/auth_provider.dart';
+import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/profile_tile.dart';
 import 'package:provider/provider.dart';
@@ -73,6 +74,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _showAdminOverrideDialog(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    final mqttProvider = context.read<MqttProvider>();
+
+    double startH = authProvider.shiftStartHour.toDouble();
+    double endH = authProvider.shiftEndHour.toDouble();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: const Color(0xFF0F172A),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.redAccent, width: 2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              SizedBox(width: 10),
+              Text(
+                'ADMIN OVERRIDE',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'CONFIGURE OPERATIONAL WINDOW',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 10,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 30),
+              Text(
+                'SYSTEM BOOT: ${startH.toInt()}:00',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Slider(
+                value: startH,
+                max: 23,
+                divisions: 23,
+                activeColor: Colors.blueAccent,
+                onChanged: (val) {
+                  if (val < endH) setState(() => startH = val);
+                },
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'SYSTEM HALT: ${endH.toInt()}:00',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Slider(
+                value: endH,
+                min: 1,
+                max: 24,
+                divisions: 23,
+                activeColor: Colors.redAccent,
+                onChanged: (val) {
+                  if (val > startH) setState(() => endH = val);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'CANCEL',
+                style: TextStyle(color: Colors.white38),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                authProvider.saveOperationalHours(startH.toInt(), endH.toInt());
+                mqttProvider.setOperationalHours(startH.toInt(), endH.toInt());
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'ENGAGE PROTOCOL',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<bool> _showConfirmDialog({
     required String title,
     required String message,
@@ -139,7 +247,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     final user = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
@@ -162,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
           child: Column(
             children: [
-              _buildAvatarHeader(theme),
+              _buildAvatarHeader(context, theme),
               const SizedBox(height: 30),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -323,33 +430,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
   }
 
-  Widget _buildAvatarHeader(ThemeData theme) {
+  Widget _buildAvatarHeader(BuildContext context, ThemeData theme) {
     return Column(
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.primaryColor.withValues(alpha: 0.1),
-                  width: 4,
+        GestureDetector(
+          onLongPress: () => _showAdminOverrideDialog(context),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 110,
+                height: 110,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.primaryColor.withValues(alpha: 0.1),
+                    width: 4,
+                  ),
                 ),
               ),
-            ),
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: theme.cardTheme.color,
-              child: Icon(
-                Icons.engineering_rounded,
-                size: 50,
-                color: theme.primaryColor,
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: theme.cardTheme.color,
+                child: Icon(
+                  Icons.engineering_rounded,
+                  size: 50,
+                  color: theme.primaryColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 15),
         Text(
