@@ -40,7 +40,7 @@ class MqttProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Помилка читання email: $e');
     }
-    return 'system_override'; 
+    return 'system_override';
   }
 
   void setOperationalHours(int start, int end) {
