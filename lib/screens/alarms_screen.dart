@@ -1,59 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_development_iot/models/alarm_model.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/alarm_cubit.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/repositories/alarm_repository.dart';
 import 'package:mobile_development_iot/widgets/common/alarm_item.dart';
 import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 
-class AlarmsScreen extends StatefulWidget {
+class AlarmsScreen extends StatelessWidget {
   const AlarmsScreen({super.key});
-
-  @override
-  State<AlarmsScreen> createState() => _AlarmsScreenState();
-}
-
-class _AlarmsScreenState extends State<AlarmsScreen> {
-  final IAlarmRepository _repository = SecureAlarmRepository();
-  List<AlarmModel> _alarms = [];
-  bool _isLoading = true;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadAlarms();
-  }
-
-  Future<void> _loadAlarms() async {
-    final tank = ModalRoute.of(context)!.settings.arguments as TankModel;
-    final data = await _repository.getAlarmsByTank(tank.id);
-    setState(() {
-      _alarms = data;
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _clearLogs(String tankId) async {
-    await _repository.clearAlarms(tankId);
-    setState(() => _alarms = []);
-  }
-
-  Future<void> _simulateAlarm(String tankId) async {
-    final now = DateTime.now();
-    final newAlarm = AlarmModel(
-      id: now.millisecondsSinceEpoch.toString(),
-      tankId: tankId,
-      message: 'System alert: unusual pressure detected!',
-      time: '${now.hour}:${now.minute}:${now.second}',
-      isCritical: now.second % 2 == 0,
-    );
-
-    await _repository.addAlarm(newAlarm);
-    _loadAlarms();
-  }
 
   @override
   Widget build(BuildContext context) {
     final tank = ModalRoute.of(context)!.settings.arguments as TankModel;
+
+    return BlocProvider(
+      create: (context) =>
+          AlarmCubit(context.read<IAlarmRepository>(), tank.id),
+      child: _AlarmsScreenBody(tank: tank),
+    );
+  }
+}
+
+class _AlarmsScreenBody extends StatelessWidget {
+  final TankModel tank;
+  const _AlarmsScreenBody({required this.tank});
+
+  @override
+  Widget build(BuildContext context) {
     final primaryColor = Color(tank.colorValue);
 
     return Scaffold(
@@ -63,28 +36,54 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_alert_rounded, color: Colors.white38),
-            onPressed: () => _simulateAlarm(tank.id),
+            onPressed: () => context.read<AlarmCubit>().simulateAlarm(),
           ),
         ],
       ),
       body: Stack(
         children: [
           const TechGrid(),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator())
-          else
-            Column(
-              children: [
-                Expanded(
-                  child: _alarms.isEmpty
-                      ? _buildEmptyState()
-                      : _buildAlarmList(),
-                ),
-
-                if (_alarms.isNotEmpty)
-                  _buildClearButton(tank.id, primaryColor),
-              ],
-            ),
+          BlocBuilder<AlarmCubit, AlarmState>(
+            builder: (context, state) {
+              if (state is AlarmLoading) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is AlarmError) {
+                return Center(
+                  child: Text(
+                    state.message,
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
+                );
+              } else if (state is AlarmLoaded) {
+                return Column(
+                  children: [
+                    Expanded(
+                      child: state.alarms.isEmpty
+                          ? _buildEmptyState()
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 10,
+                              ),
+                              itemCount: state.alarms.length,
+                              itemBuilder: (context, index) {
+                                final alarm = state.alarms[index];
+                                return AlarmItem(
+                                  time: alarm.time,
+                                  message: alarm.message,
+                                  isCritical: alarm.isCritical,
+                                );
+                              },
+                            ),
+                    ),
+                    if (state.alarms.isNotEmpty)
+                      _buildClearButton(context, primaryColor),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );
@@ -119,26 +118,11 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
     );
   }
 
-  Widget _buildAlarmList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      itemCount: _alarms.length,
-      itemBuilder: (context, index) {
-        final alarm = _alarms[index];
-        return AlarmItem(
-          time: alarm.time,
-          message: alarm.message,
-          isCritical: alarm.isCritical,
-        );
-      },
-    );
-  }
-
-  Widget _buildClearButton(String tankId, Color color) {
+  Widget _buildClearButton(BuildContext context, Color color) {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: TextButton.icon(
-        onPressed: () => _clearLogs(tankId),
+        onPressed: () => context.read<AlarmCubit>().clearAlarms(),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           backgroundColor: color.withValues(alpha: 0.05),

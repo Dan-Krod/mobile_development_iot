@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 import 'package:mobile_development_iot/widgets/tank/chart_painter.dart';
@@ -19,6 +21,7 @@ class AnalyticsScreen extends StatelessWidget {
 
     final tank = args;
     final tankColor = Color(tank.colorValue);
+    final isHardware = tank.isHardwareBound;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -84,18 +87,36 @@ class AnalyticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                _buildLegendCard(
-                  'FLUID LEVEL MONITORING',
-                  '${(tank.currentLevel * 100).toInt()}%',
-                  tankColor,
-                  Icons.waves_rounded,
-                ),
-                const SizedBox(height: 12),
-                _buildLegendCard(
-                  'MOTOR TEMPERATURE',
-                  '24.57 °C',
-                  Colors.orangeAccent,
-                  Icons.thermostat_rounded,
+                BlocBuilder<MqttCubit, MqttState>(
+                  builder: (context, state) {
+                    String fluidVal = '${(tank.currentLevel * 100).toInt()}%';
+                    String tempVal = '24.57 °C';
+                    Color tempColor = Colors.orangeAccent;
+
+                    if (isHardware && state is MqttDataState) {
+                      fluidVal = '${state.level.toStringAsFixed(1)} %';
+                      tempVal = '${state.temp.toStringAsFixed(1)} °C';
+                      if (state.temp > 40) tempColor = Colors.redAccent;
+                    }
+
+                    return Column(
+                      children: [
+                        _buildLegendCard(
+                          'FLUID LEVEL MONITORING',
+                          fluidVal,
+                          tankColor,
+                          Icons.waves_rounded,
+                        ),
+                        const SizedBox(height: 12),
+                        _buildLegendCard(
+                          'MOTOR TEMPERATURE',
+                          tempVal,
+                          tempColor,
+                          Icons.thermostat_rounded,
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const Spacer(),
               ],
