@@ -131,6 +131,22 @@ def save_tank():
     finally:
         conn.close()
 
+@app.route('/api/tanks', methods=['DELETE'])
+def delete_tank_endpoint():
+    tank_id = request.args.get('id')
+    if not tank_id:
+        return jsonify({"error": "Tank ID required"}), 400
+
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM tanks WHERE id = ?', (tank_id,))
+        conn.commit()
+        return jsonify({"message": "Tank completely deleted"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/logs', methods=['GET', 'POST'])
 def handle_logs():
     conn = get_db_connection()

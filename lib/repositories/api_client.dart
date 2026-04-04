@@ -54,6 +54,10 @@ class ApiClient {
     return await _dio.post('/tanks', data: tankData);
   }
 
+  Future<Response<dynamic>> deleteTank(String id) async {
+    return await _dio.delete('/tanks', queryParameters: {'id': id});
+  }
+
   Future<Response<dynamic>> getLogs() async {
     return await _dio.get('/logs');
   }

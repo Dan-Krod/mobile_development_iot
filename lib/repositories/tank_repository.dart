@@ -89,8 +89,15 @@ class SecureTankRepository implements ITankRepository {
 
   @override
   Future<void> deleteTank(String id) async {
+    try {
+      await _api.deleteTank(id);
+      debugPrint('API: Бак $id успішно видалено з сервера');
+    } catch (e) {
+      debugPrint('API Офлайн: Не вдалося видалити бак з сервера: $e');
+    }
+
     final tanks = await getTanks();
     tanks.removeWhere((t) => t.id == id);
-    await saveTanks(tanks);
+    await _saveLocally(tanks);
   }
 }
