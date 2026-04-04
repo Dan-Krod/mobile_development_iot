@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
-import 'package:mobile_development_iot/widgets/tank/chart_painter.dart';
 import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
+import 'package:mobile_development_iot/widgets/tank/chart_painter.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});

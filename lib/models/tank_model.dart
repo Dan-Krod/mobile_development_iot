@@ -53,6 +53,9 @@ class TankModel {
     capacity: (json['capacity'] as num).toDouble(),
     unit: json['unit'] as String,
     colorValue: json['colorValue'] as int? ?? 0xFF38BDF8,
-    isHardwareBound: json['isHardwareBound'] as bool? ?? false,
+    isHardwareBound:
+        json['isHardwareBound'] == true ||
+        json['isHardwareBound'] == 1 ||
+        json['isHardwareBound'] == 'true',
   );
 }

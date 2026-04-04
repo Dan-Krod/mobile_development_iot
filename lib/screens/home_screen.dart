@@ -3,9 +3,9 @@ import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/providers/connectivity_provider.dart';
 import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/repositories/tank_repository.dart';
+import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 import 'package:mobile_development_iot/widgets/layout/main_wrapper.dart';
 import 'package:mobile_development_iot/widgets/layout/shake_simulation_wrapper.dart';
-import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
