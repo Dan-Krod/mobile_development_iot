@@ -1,48 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/control_cubit.dart';
+import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
-import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
 import 'package:mobile_development_iot/widgets/common/control_toggle.dart';
-import 'package:provider/provider.dart';
+import 'package:mobile_development_iot/widgets/common/info_banner.dart';
+import 'package:mobile_development_iot/widgets/tank/mode_selector.dart';
 
-class ControlScreen extends StatefulWidget {
+class ControlScreen extends StatelessWidget {
   const ControlScreen({super.key});
 
   @override
-  State<ControlScreen> createState() => _ControlScreenState();
+  Widget build(BuildContext context) {
+    final tank = ModalRoute.of(context)?.settings.arguments as TankModel?;
+    if (tank == null) {
+      return const Scaffold(body: Center(child: Text('ERROR: No data')));
+    }
+
+    return BlocProvider(
+      create: (context) =>
+          ControlCubit(context.read<MqttCubit>(), tank.isHardwareBound),
+      child: _ControlScreenBody(tank: tank),
+    );
+  }
 }
 
-class _ControlScreenState extends State<ControlScreen> {
-  bool _localSystemPower = true;
-  bool _localPumpState = false;
-  bool _localValveState = false;
-
-  bool _isAutoMode = false;
+class _ControlScreenBody extends StatelessWidget {
+  final TankModel tank;
+  const _ControlScreenBody({required this.tank});
 
   @override
   Widget build(BuildContext context) {
-    final dynamic args = ModalRoute.of(context)?.settings.arguments;
-
-    if (args == null) {
-      return const Scaffold(
-        body: Center(child: Text('ERROR: No data received via Navigator')),
-      );
-    }
-
-    final tank = args as TankModel;
     final primaryColor = Color(tank.colorValue);
     final isHardware = tank.isHardwareBound;
-
-    final mqtt = context.watch<MqttProvider>();
-
-    final effectiveSysPower = isHardware
-        ? mqtt.systemActive
-        : _localSystemPower;
-    final effectivePumpState = isHardware ? mqtt.pumpStatus : _localPumpState;
-    final effectiveValveState = _localValveState;
-
-    final isLockedByHardware = isHardware && mqtt.localOverride;
-    final isDisconnected = isHardware && !mqtt.isConnected;
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
@@ -54,207 +45,151 @@ class _ControlScreenState extends State<ControlScreen> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
       ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!isHardware)
-                  _buildInfoBanner(
-                    'VIRTUAL MODE',
-                    'Changes are simulated locally.',
-                    Colors.purpleAccent,
-                  ),
-                if (isLockedByHardware)
-                  _buildInfoBanner(
-                    'HARDWARE LOCK',
-                    'Physical override active on ESP32.',
-                    Colors.redAccent,
-                  ),
-                if (isDisconnected)
-                  _buildInfoBanner(
-                    'OFFLINE',
-                    'Connecting to MQTT Broker...',
-                    Colors.orangeAccent,
-                  ),
+      body: BlocBuilder<MqttCubit, MqttState>(
+        builder: (context, mqttState) {
+          return BlocBuilder<ControlCubit, ControlState>(
+            builder: (context, controlState) {
+              final isConnected = mqttState is MqttDataState;
+              final localOverride = isConnected && mqttState.localOverride;
 
-                const SizedBox(height: 10),
-                const Text(
-                  'SYSTEM CONFIGURATION',
-                  style: TextStyle(
-                    color: Colors.white30,
-                    fontSize: 10,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.bold,
-                  ),
+              final sysActive = isHardware && isConnected
+                  ? mqttState.systemActive
+                  : controlState.systemPower;
+              final pumpActive = isHardware && isConnected
+                  ? mqttState.pumpStatus
+                  : controlState.pumpState;
+
+              final isLocked = isHardware && localOverride;
+              final isDisconnected = isHardware && !isConnected;
+              final isDisabled =
+                  isLocked ||
+                  isDisconnected ||
+                  !sysActive ||
+                  controlState.isAutoMode;
+
+              return Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (!isHardware)
+                      const InfoBanner(
+                        title: 'VIRTUAL MODE',
+                        sub: 'Changes are simulated locally.',
+                        color: Colors.purpleAccent,
+                      ),
+                    if (isLocked)
+                      const InfoBanner(
+                        title: 'HARDWARE LOCK',
+                        sub: 'Physical override active on ESP32.',
+                        color: Colors.redAccent,
+                      ),
+                    if (isDisconnected)
+                      const InfoBanner(
+                        title: 'OFFLINE',
+                        sub: 'Connecting to MQTT Broker...',
+                        color: Colors.orangeAccent,
+                      ),
+
+                    const SizedBox(height: 10),
+                    const Text(
+                      'SYSTEM CONFIGURATION',
+                      style: TextStyle(
+                        color: Colors.white30,
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    ModeSelector(
+                      activeColor: primaryColor,
+                      isAuto: controlState.isAutoMode,
+                    ),
+                    const SizedBox(height: 30),
+
+                    ControlToggle(
+                      label: 'Main System Unit',
+                      icon: Icons.power_rounded,
+                      value: sysActive,
+                      activeColor: primaryColor,
+                      isDisabled: isLocked || isDisconnected,
+                      onChanged: (val) {
+                        if (isHardware) {
+                          context.read<MqttCubit>().sendCommand(
+                            'system_status',
+                            val,
+                          );
+                        } else {
+                          context.read<ControlCubit>().toggleSystem(val);
+                        }
+                      },
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Divider(color: Colors.white10, thickness: 1),
+                    ),
+
+                    ControlToggle(
+                      label: 'Water Pump Station',
+                      icon: Icons.settings_input_component_rounded,
+                      value: pumpActive,
+                      activeColor: primaryColor,
+                      isDisabled: isDisabled,
+                      onChanged: (val) {
+                        if (isHardware) {
+                          context.read<MqttCubit>().sendCommand(
+                            'pump_command',
+                            val,
+                          );
+                        } else {
+                          context.read<ControlCubit>().togglePump(val);
+                        }
+                      },
+                    ),
+
+                    ControlToggle(
+                      label: 'Solenoid Valve',
+                      icon: Icons.water_drop_outlined,
+                      value: controlState.valveState,
+                      activeColor: primaryColor,
+                      isDisabled: isDisabled,
+                      onChanged: (val) =>
+                          context.read<ControlCubit>().toggleValve(val),
+                    ),
+
+                    const Spacer(),
+
+                    ActionButton(
+                      text: 'EMERGENCY SHUTDOWN',
+                      onPressed: (isLocked || isDisconnected)
+                          ? null
+                          : () {
+                              if (isHardware) {
+                                context.read<MqttCubit>().sendCommand(
+                                  'pump_command',
+                                  false,
+                                );
+                                context.read<MqttCubit>().sendCommand(
+                                  'system_status',
+                                  false,
+                                );
+                              } else {
+                                context
+                                    .read<ControlCubit>()
+                                    .emergencyShutdown();
+                              }
+                            },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                const SizedBox(height: 20),
-
-                _buildModeSelector(primaryColor),
-
-                const SizedBox(height: 30),
-
-                ControlToggle(
-                  label: 'Main System Unit',
-                  icon: Icons.power_rounded,
-                  value: effectiveSysPower,
-                  activeColor: primaryColor,
-                  isDisabled: isLockedByHardware || isDisconnected,
-                  onChanged: (val) {
-                    if (isHardware) {
-                      mqtt.sendCommand('system_status', val);
-                    } else {
-                      setState(() => _localSystemPower = val);
-                    }
-                  },
-                ),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Divider(color: Colors.white10, thickness: 1),
-                ),
-
-                ControlToggle(
-                  label: 'Water Pump Station',
-                  icon: Icons.settings_input_component_rounded,
-                  value: effectivePumpState,
-                  activeColor: primaryColor,
-                  isDisabled:
-                      isLockedByHardware ||
-                      isDisconnected ||
-                      !effectiveSysPower ||
-                      _isAutoMode,
-                  onChanged: (val) {
-                    if (isHardware) {
-                      mqtt.sendCommand('pump_command', val);
-                    } else {
-                      setState(() => _localPumpState = val);
-                    }
-                  },
-                ),
-
-                ControlToggle(
-                  label: 'Solenoid Valve',
-                  icon: Icons.water_drop_outlined,
-                  value: effectiveValveState,
-                  activeColor: primaryColor,
-                  isDisabled:
-                      isLockedByHardware ||
-                      isDisconnected ||
-                      !effectiveSysPower ||
-                      _isAutoMode,
-                  onChanged: (val) => setState(() => _localValveState = val),
-                ),
-
-                const Spacer(),
-
-                ActionButton(
-                  text: 'EMERGENCY SHUTDOWN',
-                  onPressed: (isLockedByHardware || isDisconnected)
-                      ? null
-                      : () {
-                          if (isHardware) {
-                            mqtt.sendCommand('pump_command', false);
-                            mqtt.sendCommand('system_status', false);
-                          } else {
-                            setState(() {
-                              _localPumpState = false;
-                              _localValveState = false;
-                              _localSystemPower = false;
-                            });
-                          }
-                        },
-                ),
-
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoBanner(String title, String subtitle, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: color, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: color.withValues(alpha: 0.7),
-                    fontSize: 9,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModeSelector(Color activeColor) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          _modeButton('MANUAL', !_isAutoMode, activeColor),
-          _modeButton('AUTOMATION', _isAutoMode, activeColor),
-        ],
-      ),
-    );
-  }
-
-  Widget _modeButton(String title, bool active, Color activeColor) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _isAutoMode = title == 'AUTOMATION'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: active ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Center(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: active ? Colors.black : Colors.white38,
-              ),
-            ),
-          ),
-        ),
+              );
+            },
+          );
+        },
       ),
     );
   }
