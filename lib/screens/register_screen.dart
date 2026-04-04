@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/auth_cubit.dart';
+import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
-import 'package:mobile_development_iot/providers/auth_provider.dart';
-import 'package:mobile_development_iot/providers/connectivity_provider.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
 import 'package:mobile_development_iot/widgets/common/custom_input.dart';
 import 'package:mobile_development_iot/widgets/hud/fluid_logo.dart';
-import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -34,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  Future<void> _handleRegister() async {
+  void _handleRegister() {
     if (_formKey.currentState!.validate()) {
       final newUser = UserModel(
         fullName: _nameController.text.trim(),
@@ -44,29 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         database: _dbController.text.trim(),
       );
 
-      try {
-        await context.read<AuthProvider>().register(newUser);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('✅ ENGINEER REGISTERED SUCCESSFULLY'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pushReplacementNamed(context, '/');
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('❌ REGISTRATION FAILED: NO SERVER CONNECTION'),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
+      context.read<AuthCubit>().register(newUser);
     }
   }
 
@@ -83,8 +61,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    final isOnline = context.watch<ConnectivityProvider>().isOnline;
+    final isOnline =
+        context.watch<ConnectivityCubit>().state is ConnectivityOnline;
 
     return Scaffold(
       appBar: AppBar(
@@ -92,104 +70,128 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
       ),
       extendBodyBehindAppBar: true,
-      body: Form(
-        key: _formKey,
-        child: SizedBox(
-          height: double.infinity,
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  const FluidLogo(size: 70),
-                  const SizedBox(height: 35),
+      body: BlocListener<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ ENGINEER REGISTERED SUCCESSFULLY'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/');
+          } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('❌ REGISTRATION FAILED: NO SERVER CONNECTION'),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: Form(
+          key: _formKey,
+          child: SizedBox(
+            height: double.infinity,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 20,
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    const FluidLogo(size: 70),
+                    const SizedBox(height: 35),
 
-                  Text(
-                    'ENGINEER ENROLLMENT',
-                    style: theme.appBarTheme.titleTextStyle?.copyWith(
-                      fontSize: 20,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'NEW SYSTEM NODE ACCESS',
-                      style: TextStyle(
-                        color: theme.primaryColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                    Text(
+                      'ENGINEER ENROLLMENT',
+                      style: theme.appBarTheme.titleTextStyle?.copyWith(
+                        fontSize: 20,
+                        letterSpacing: 2,
                       ),
                     ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  CustomInput(
-                    label: 'FULL NAME',
-                    controller: _nameController,
-                    icon: Icons.assignment_ind_outlined,
-                    validator: Validators.validateName,
-                  ),
-                  const SizedBox(height: 10),
-                  CustomInput(
-                    label: 'ENGINEER EMAIL',
-                    controller: _emailController,
-                    icon: Icons.alternate_email_rounded,
-                    validator: Validators.validateEmail,
-                  ),
-                  const SizedBox(height: 10),
-                  CustomInput(
-                    label: 'ACCESS KEY',
-                    controller: _passController,
-                    icon: Icons.lock_outline,
-                    isPassword: true,
-                    validator: Validators.validatePassword,
-                  ),
-                  const SizedBox(height: 10),
-                  CustomInput(
-                    label: 'CORE HARDWARE',
-                    controller: _hardwareController,
-                    icon: Icons.developer_board_rounded,
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Specify hardware' : null,
-                  ),
-                  const SizedBox(height: 10),
-                  CustomInput(
-                    label: 'DATABASE SYSTEM',
-                    controller: _dbController,
-                    icon: Icons.storage_rounded,
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Specify database' : null,
-                  ),
-                  const SizedBox(height: 30),
-
-                  ActionButton(
-                    text: isOnline ? 'CREATE ACCOUNT' : 'NO CONNECTION',
-                    onPressed: isOnline ? _handleRegister : _showOfflineError,
-                  ),
-
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'ALREADY HAVE ACCESS? SIGN IN',
-                      style: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 11,
-                        letterSpacing: 1,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'NEW SYSTEM NODE ACCESS',
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 25),
+
+                    CustomInput(
+                      label: 'FULL NAME',
+                      controller: _nameController,
+                      icon: Icons.assignment_ind_outlined,
+                      validator: Validators.validateName,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomInput(
+                      label: 'ENGINEER EMAIL',
+                      controller: _emailController,
+                      icon: Icons.alternate_email_rounded,
+                      validator: Validators.validateEmail,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomInput(
+                      label: 'ACCESS KEY',
+                      controller: _passController,
+                      icon: Icons.lock_outline,
+                      isPassword: true,
+                      validator: Validators.validatePassword,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomInput(
+                      label: 'CORE HARDWARE',
+                      controller: _hardwareController,
+                      icon: Icons.developer_board_rounded,
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Specify hardware' : null,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomInput(
+                      label: 'DATABASE SYSTEM',
+                      controller: _dbController,
+                      icon: Icons.storage_rounded,
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Specify database' : null,
+                    ),
+                    const SizedBox(height: 30),
+
+                    ActionButton(
+                      text: isOnline ? 'CREATE ACCOUNT' : 'NO CONNECTION',
+                      onPressed: isOnline ? _handleRegister : _showOfflineError,
+                    ),
+
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'ALREADY HAVE ACCESS? SIGN IN',
+                        style: TextStyle(
+                          color: Colors.white38,
+                          fontSize: 11,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
