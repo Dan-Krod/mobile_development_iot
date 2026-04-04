@@ -3,8 +3,8 @@ import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/providers/auth_provider.dart';
 import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/screens/audit_logs_screen.dart';
-import 'package:mobile_development_iot/widgets/action_button.dart';
-import 'package:mobile_development_iot/widgets/profile_tile.dart';
+import 'package:mobile_development_iot/widgets/common/action_button.dart';
+import 'package:mobile_development_iot/widgets/common/profile_tile.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {

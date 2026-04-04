@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/alarm_model.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/repositories/alarm_repository.dart';
-import 'package:mobile_development_iot/widgets/alarm_item.dart';
-import 'package:mobile_development_iot/widgets/tech_grid.dart';
+import 'package:mobile_development_iot/widgets/common/alarm_item.dart';
+import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 
 class AlarmsScreen extends StatefulWidget {
   const AlarmsScreen({super.key});

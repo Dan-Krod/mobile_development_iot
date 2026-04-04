@@ -3,9 +3,9 @@ import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/providers/auth_provider.dart';
 import 'package:mobile_development_iot/providers/connectivity_provider.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
-import 'package:mobile_development_iot/widgets/action_button.dart';
-import 'package:mobile_development_iot/widgets/custom_input.dart';
-import 'package:mobile_development_iot/widgets/fluid_logo.dart';
+import 'package:mobile_development_iot/widgets/common/action_button.dart';
+import 'package:mobile_development_iot/widgets/common/custom_input.dart';
+import 'package:mobile_development_iot/widgets/hud/fluid_logo.dart';
 import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {

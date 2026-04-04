@@ -12,7 +12,7 @@ import 'package:mobile_development_iot/screens/profile_screen.dart';
 import 'package:mobile_development_iot/screens/register_screen.dart';
 import 'package:mobile_development_iot/screens/tank_details_screen.dart';
 import 'package:mobile_development_iot/theme/app_theme.dart';
-import 'package:mobile_development_iot/widgets/connectivity_overlay.dart';
+import 'package:mobile_development_iot/widgets/layout/connectivity_overlay.dart';
 import 'package:provider/provider.dart';
 
 void main() async {

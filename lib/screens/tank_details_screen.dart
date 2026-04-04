@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/providers/mqtt_provider.dart';
-import 'package:mobile_development_iot/widgets/fluid_tank_observation.dart';
-import 'package:mobile_development_iot/widgets/sensor_card.dart';
-import 'package:mobile_development_iot/widgets/tank_wrapper.dart';
+import 'package:mobile_development_iot/widgets/tank/fluid_tank_observation.dart';
+import 'package:mobile_development_iot/widgets/tank/sensor_card.dart';
+import 'package:mobile_development_iot/widgets/tank/tank_wrapper.dart';
 import 'package:provider/provider.dart';
 
 class TankDetailsScreen extends StatefulWidget {

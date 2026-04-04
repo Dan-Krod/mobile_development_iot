@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/providers/mqtt_provider.dart';
-import 'package:mobile_development_iot/widgets/action_button.dart';
-import 'package:mobile_development_iot/widgets/control_toggle.dart';
+import 'package:mobile_development_iot/widgets/common/action_button.dart';
+import 'package:mobile_development_iot/widgets/common/control_toggle.dart';
 import 'package:provider/provider.dart';
 
 class ControlScreen extends StatefulWidget {
