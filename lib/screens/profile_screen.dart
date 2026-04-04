@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/providers/auth_provider.dart';
 import 'package:mobile_development_iot/providers/mqtt_provider.dart';
+import 'package:mobile_development_iot/screens/audit_logs_screen.dart';
 import 'package:mobile_development_iot/widgets/action_button.dart';
 import 'package:mobile_development_iot/widgets/profile_tile.dart';
 import 'package:provider/provider.dart';
@@ -59,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 database: dbController.text.trim(),
               );
 
-              await context.read<AuthProvider>().register(updatedUser);
+              await context.read<AuthProvider>().updateUser(updatedUser);
 
               if (!context.mounted) return;
               Navigator.pop(context);
@@ -307,7 +308,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
+              ListTile(
+                leading: const Icon(
+                  Icons.list_alt_rounded,
+                  color: Colors.blueAccent,
+                ),
+                title: const Text(
+                  'VIEW AUDIT LOGS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white54,
+                  size: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: Colors.white10),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<dynamic>(
+                      builder: (context) => const AuditLogsScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ActionButton(
@@ -413,10 +446,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 if (confirmed) {
                   if (!context.mounted) return;
-                  await context.read<AuthProvider>().deleteAccount();
 
-                  if (!context.mounted) return;
-                  _redirectToLogin(context);
+                  try {
+                    await context.read<AuthProvider>().deleteAccount();
+
+                    if (!context.mounted) return;
+                    _redirectToLogin(context);
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'CRITICAL: Server offline. Account protected.',
+                        ),
+                        backgroundColor: Colors.orangeAccent,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
                 }
               },
             ),
