@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/audit_cubit.dart';
 import 'package:mobile_development_iot/repositories/api_client.dart';
 
 class AuditLogsScreen extends StatelessWidget {
@@ -6,8 +8,18 @@ class AuditLogsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final apiClient = ApiClient();
+    return BlocProvider(
+      create: (context) => AuditCubit(context.read<ApiClient>()),
+      child: const _AuditLogsScreenBody(),
+    );
+  }
+}
 
+class _AuditLogsScreenBody extends StatelessWidget {
+  const _AuditLogsScreenBody();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -19,40 +31,37 @@ class AuditLogsScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: const Color(0xFF0F172A),
-      body: FutureBuilder(
-        future: apiClient.getLogs(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: BlocBuilder<AuditCubit, AuditState>(
+        builder: (context, state) {
+          if (state is AuditLoading) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.blueAccent),
             );
           }
 
-          if (snapshot.hasError) {
-            return const Center(
+          if (state is AuditError) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.wifi_off_rounded,
                     color: Colors.redAccent,
                     size: 50,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'SERVER OFFLINE\nLogs unavailable',
+                    state.message,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.redAccent),
+                    style: const TextStyle(color: Colors.redAccent),
                   ),
                 ],
               ),
             );
           }
 
-          if (snapshot.hasData && snapshot.data != null) {
-            final List<dynamic> logs = snapshot.data!.data as List<dynamic>;
-
-            if (logs.isEmpty) {
+          if (state is AuditLoaded) {
+            if (state.logs.isEmpty) {
               return const Center(
                 child: Text(
                   'NO LOGS FOUND',
@@ -63,10 +72,10 @@ class AuditLogsScreen extends StatelessWidget {
 
             return ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: logs.length,
+              itemCount: state.logs.length,
               separatorBuilder: (_, _) => const Divider(color: Colors.white10),
               itemBuilder: (context, index) {
-                final log = logs[index];
+                final log = state.logs[index];
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.security, color: Colors.blueAccent),

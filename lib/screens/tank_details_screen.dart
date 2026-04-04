@@ -1,32 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
-import 'package:mobile_development_iot/providers/mqtt_provider.dart';
 import 'package:mobile_development_iot/widgets/tank/fluid_tank_observation.dart';
 import 'package:mobile_development_iot/widgets/tank/sensor_card.dart';
 import 'package:mobile_development_iot/widgets/tank/tank_wrapper.dart';
-import 'package:provider/provider.dart';
 
-class TankDetailsScreen extends StatefulWidget {
+class TankDetailsScreen extends StatelessWidget {
   const TankDetailsScreen({super.key});
-
-  @override
-  State<TankDetailsScreen> createState() => _TankDetailsScreenState();
-}
-
-class _TankDetailsScreenState extends State<TankDetailsScreen> {
-  bool _isInit = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_isInit) {
-      final tank = ModalRoute.of(context)!.settings.arguments as TankModel;
-      if (tank.isHardwareBound) {
-        context.read<MqttProvider>().connect('10.217.121.222');
-      }
-      _isInit = true;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +15,15 @@ class _TankDetailsScreenState extends State<TankDetailsScreen> {
     final tankColor = Color(tank.colorValue);
     final isHardware = tank.isHardwareBound;
 
-    final mqtt = context.watch<MqttProvider>();
+    if (isHardware) {
+      Future.microtask(() {
+        if (!context.mounted) return;
+        final mqtt = context.read<MqttCubit>();
+        if (mqtt.state is MqttInitial || mqtt.state is MqttDisconnected) {
+          mqtt.connect('10.217.121.222');
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
@@ -50,7 +39,11 @@ class _TankDetailsScreenState extends State<TankDetailsScreen> {
               ),
             ),
             const SizedBox(height: 4),
-            _buildStatusBadge(isHardware, mqtt.isConnected),
+            BlocBuilder<MqttCubit, MqttState>(
+              builder: (context, mqttState) {
+                return _buildStatusBadge(isHardware, mqttState);
+              },
+            ),
           ],
         ),
         backgroundColor: Colors.transparent,
@@ -63,29 +56,35 @@ class _TankDetailsScreenState extends State<TankDetailsScreen> {
             flex: 7,
             child: ObservationBay(primaryColor: tankColor, onTankTap: () {}),
           ),
-
           _buildGlowingDivider(tankColor),
-
-          _buildSensorRow(tankColor, isHardware, mqtt),
-
+          BlocBuilder<MqttCubit, MqttState>(
+            builder: (context, mqttState) {
+              return _buildSensorRow(tankColor, isHardware, mqttState);
+            },
+          ),
           TankWrapper(tank: tank),
-
           const SizedBox(height: 15),
         ],
       ),
     );
   }
 
-  Widget _buildStatusBadge(bool isHardware, bool isMqttConnected) {
+  Widget _buildStatusBadge(bool isHardware, MqttState state) {
     Color badgeColor;
     String badgeText;
 
     if (!isHardware) {
       badgeColor = Colors.purpleAccent;
       badgeText = 'VIRTUAL NODE';
-    } else if (isMqttConnected) {
+    } else if (state is MqttConnecting) {
+      badgeColor = Colors.orangeAccent;
+      badgeText = 'CONNECTING...';
+    } else if (state is MqttDataState) {
       badgeColor = Colors.greenAccent;
       badgeText = 'ESP32 CONNECTED';
+    } else if (state is MqttBlocked) {
+      badgeColor = Colors.red;
+      badgeText = 'ACCESS DENIED';
     } else {
       badgeColor = Colors.redAccent;
       badgeText = 'ESP32 DISCONNECTED';
@@ -110,11 +109,18 @@ class _TankDetailsScreenState extends State<TankDetailsScreen> {
     );
   }
 
-  Widget _buildSensorRow(Color color, bool isHardware, MqttProvider mqtt) {
-    final fluidVal = isHardware ? mqtt.level.toStringAsFixed(1) : '334.72';
-    final fluidUnit = isHardware ? '%' : 'g';
+  Widget _buildSensorRow(Color color, bool isHardware, MqttState state) {
+    String fluidVal = '334.72';
+    String fluidUnit = 'g';
+    String tempVal = '24.57';
+    Color tempColor = Colors.orangeAccent;
 
-    final tempVal = isHardware ? mqtt.temp.toStringAsFixed(1) : '24.57';
+    if (isHardware && state is MqttDataState) {
+      fluidVal = state.level.toStringAsFixed(1);
+      fluidUnit = '%';
+      tempVal = state.temp.toStringAsFixed(1);
+      if (state.temp > 40) tempColor = Colors.redAccent;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -136,9 +142,7 @@ class _TankDetailsScreenState extends State<TankDetailsScreen> {
               value: tempVal,
               unit: '°C',
               icon: Icons.thermostat,
-              color: isHardware && mqtt.temp > 40
-                  ? Colors.redAccent
-                  : Colors.orangeAccent,
+              color: tempColor,
             ),
           ),
         ],
