@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
-import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
-import 'package:mobile_development_iot/cubits/tank_cubit.dart';
+
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
+import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
+import 'package:mobile_development_iot/blocs/tank/tank_bloc.dart';
+
 import 'package:mobile_development_iot/repositories/alarm_repository.dart';
 import 'package:mobile_development_iot/repositories/api_client.dart';
 import 'package:mobile_development_iot/repositories/auth_repository.dart';
 import 'package:mobile_development_iot/repositories/tank_repository.dart';
+
 import 'package:mobile_development_iot/screens/alarms_screen.dart';
 import 'package:mobile_development_iot/screens/analytics_screen.dart';
 import 'package:mobile_development_iot/screens/control_screen.dart';
@@ -16,6 +19,7 @@ import 'package:mobile_development_iot/screens/login_screen.dart';
 import 'package:mobile_development_iot/screens/profile_screen.dart';
 import 'package:mobile_development_iot/screens/register_screen.dart';
 import 'package:mobile_development_iot/screens/tank_details_screen.dart';
+
 import 'package:mobile_development_iot/theme/app_theme.dart';
 import 'package:mobile_development_iot/widgets/layout/connectivity_overlay.dart';
 
@@ -64,22 +68,24 @@ class SmartFluidApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<AuthCubit>(
+          BlocProvider<AuthBloc>(
             create: (context) =>
-                AuthCubit(context.read<IAuthRepository>())..loadCurrentUser(),
+                AuthBloc(context.read<IAuthRepository>())
+                  ..add(LoadCurrentUserEvent()),
           ),
-          BlocProvider<ConnectivityCubit>(
-            create: (context) => ConnectivityCubit(),
+          BlocProvider<ConnectivityBloc>(
+            create: (context) => ConnectivityBloc(),
           ),
-          BlocProvider<MqttCubit>(
-            create: (context) => MqttCubit(
+          BlocProvider<MqttBloc>(
+            create: (context) => MqttBloc(
               context.read<IAuthRepository>(),
               context.read<ApiClient>(),
             ),
           ),
-          BlocProvider<TankCubit>(
+          BlocProvider<TankBloc>(
             create: (context) =>
-                TankCubit(context.read<ITankRepository>())..loadTanks(),
+                TankBloc(context.read<ITankRepository>())
+                  ..add(LoadTanksEvent()),
           ),
         ],
         child: MaterialApp(
