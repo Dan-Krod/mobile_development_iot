@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/tank_cubit.dart';
+import 'package:mobile_development_iot/blocs/tank/tank_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 
 class AddTankDialog extends StatefulWidget {
@@ -115,6 +115,7 @@ class _AddTankDialogState extends State<AddTankDialog> {
         TextButton(
           onPressed: () {
             if (!formKey.currentState!.validate()) return;
+
             final newTank = TankModel(
               id: DateTime.now().toString(),
               title: titleController.text.trim(),
@@ -123,7 +124,8 @@ class _AddTankDialogState extends State<AddTankDialog> {
               colorValue: selectedColor,
               isHardwareBound: bindToHardware,
             );
-            context.read<TankCubit>().addTank(newTank);
+            context.read<TankBloc>().add(AddTankEvent(newTank));
+
             Navigator.pop(context);
           },
           child: const Text(

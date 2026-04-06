@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
 import 'package:mobile_development_iot/widgets/dialogs/confirm_dialog.dart';
 
 enum ExitAction { logout, delete }
@@ -28,7 +28,7 @@ class ExitOptionsSheet extends StatelessWidget {
         confirmText: 'LOGOUT',
       );
       if (confirmed && context.mounted) {
-        context.read<AuthCubit>().logout();
+        context.read<AuthBloc>().add(LogoutEvent());
       }
     } else if (action == ExitAction.delete) {
       final confirmed = await ConfirmDialog.show(
@@ -36,12 +36,12 @@ class ExitOptionsSheet extends StatelessWidget {
         title: 'EXTREME ACTION: WIPE DATA',
         message:
             'This will permanently delete your account and all associated'
-            'IoT nodes. Proceed?',
+            ' IoT nodes. Proceed?',
         confirmText: 'DELETE EVERYTHING',
         confirmColor: Colors.redAccent,
       );
       if (confirmed && context.mounted) {
-        context.read<AuthCubit>().deleteAccount();
+        context.read<AuthBloc>().add(DeleteAccountEvent());
       }
     }
   }

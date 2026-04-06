@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
+import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
 
 class ConnectivityOverlay extends StatelessWidget {
   final Widget child;
@@ -9,7 +9,7 @@ class ConnectivityOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ConnectivityCubit, ConnectivityState>(
+    return BlocBuilder<ConnectivityBloc, ConnectivityState>(
       builder: (context, state) {
         return Stack(
           children: [

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/control_cubit.dart';
+import 'package:mobile_development_iot/blocs/control/control_bloc.dart';
 
 class ModeSelector extends StatelessWidget {
   final Color activeColor;
@@ -45,8 +45,9 @@ class _ModeBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTap: () =>
-            context.read<ControlCubit>().setAutoMode(title == 'AUTOMATION'),
+        onTap: () => context.read<ControlBloc>().add(
+          SetAutoModeEvent(title == 'AUTOMATION'),
+        ),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(

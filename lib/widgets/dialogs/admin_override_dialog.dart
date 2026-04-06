@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
 
 class AdminOverrideDialog extends StatefulWidget {
   const AdminOverrideDialog({super.key});
@@ -17,7 +17,7 @@ class _AdminOverrideDialogState extends State<AdminOverrideDialog> {
   @override
   void initState() {
     super.initState();
-    final authState = context.read<AuthCubit>().state;
+    final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       startH = authState.startHour.toDouble();
       endH = authState.endHour.toDouble();
@@ -95,17 +95,16 @@ class _AdminOverrideDialogState extends State<AdminOverrideDialog> {
         ),
         TextButton(
           onPressed: () {
-            debugPrint('👉 Натиснуто кнопку ENGAGE PROTOCOL');
+            debugPrint('👉 PROTOCOL ENGAGED: Updating BLoC States');
 
-            context.read<AuthCubit>().updateOperationalHours(
-              startH.toInt(),
-              endH.toInt(),
+            final start = startH.toInt();
+            final end = endH.toInt();
+
+            context.read<AuthBloc>().add(
+              UpdateOperationalHoursEvent(start, end),
             );
 
-            context.read<MqttCubit>().setOperationalHours(
-              startH.toInt(),
-              endH.toInt(),
-            );
+            context.read<MqttBloc>().add(SetOperationalHoursEvent(start, end));
 
             Navigator.pop(context);
           },

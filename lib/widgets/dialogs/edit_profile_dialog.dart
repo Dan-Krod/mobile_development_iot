@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
 
 class EditProfileDialog extends StatefulWidget {
@@ -68,9 +68,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               hardware: hardwareController.text.trim(),
               database: dbController.text.trim(),
             );
-            context.read<AuthCubit>().updateProfile(
-              updatedUser,
-            ); // 🚨 Виклик через Cubit
+
+            context.read<AuthBloc>().add(UpdateProfileEvent(updatedUser));
+
             Navigator.pop(context);
           },
           child: const Text(

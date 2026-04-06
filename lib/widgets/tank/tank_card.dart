@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
-import 'package:mobile_development_iot/cubits/tank_cubit.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
+import 'package:mobile_development_iot/blocs/tank/tank_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 
 class TankCard extends StatelessWidget {
@@ -10,7 +10,7 @@ class TankCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mqttState = context.watch<MqttCubit>().state;
+    final mqttState = context.watch<MqttBloc>().state;
     final isHardware = tank.isHardwareBound;
     final color = Color(tank.colorValue);
 
@@ -45,7 +45,8 @@ class TankCard extends StatelessWidget {
           right: 0,
           child: IconButton(
             icon: Icon(Icons.close, color: color, size: 18),
-            onPressed: () => context.read<TankCubit>().deleteTank(tank.id),
+            onPressed: () =>
+                context.read<TankBloc>().add(DeleteTankEvent(tank.id)),
           ),
         ),
       ],
