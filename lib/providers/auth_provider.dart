@@ -63,4 +63,9 @@ class AuthProvider extends ChangeNotifier {
     shiftEndHour = end;
     notifyListeners();
   }
+
+  Future<void> updateUser(UserModel user) async {
+    await _authRepository.updateUser(user);
+    await loadSession();
+  }
 }

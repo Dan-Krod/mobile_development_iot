@@ -44,16 +44,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         database: _dbController.text.trim(),
       );
 
-      await context.read<AuthProvider>().register(newUser);
+      try {
+        await context.read<AuthProvider>().register(newUser);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ ENGINEER REGISTERED SUCCESSFULLY'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ ENGINEER REGISTERED SUCCESSFULLY'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('❌ REGISTRATION FAILED: NO SERVER CONNECTION'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
   }
