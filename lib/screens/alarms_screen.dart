@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/alarm_cubit.dart';
+import 'package:mobile_development_iot/blocs/alarm/alarm_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/repositories/alarm_repository.dart';
 import 'package:mobile_development_iot/widgets/common/alarm_item.dart';
@@ -14,8 +14,7 @@ class AlarmsScreen extends StatelessWidget {
     final tank = ModalRoute.of(context)!.settings.arguments as TankModel;
 
     return BlocProvider(
-      create: (context) =>
-          AlarmCubit(context.read<IAlarmRepository>(), tank.id),
+      create: (context) => AlarmBloc(context.read<IAlarmRepository>(), tank.id),
       child: _AlarmsScreenBody(tank: tank),
     );
   }
@@ -36,14 +35,15 @@ class _AlarmsScreenBody extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_alert_rounded, color: Colors.white38),
-            onPressed: () => context.read<AlarmCubit>().simulateAlarm(),
+            onPressed: () =>
+                context.read<AlarmBloc>().add(SimulateAlarmEvent()),
           ),
         ],
       ),
       body: Stack(
         children: [
           const TechGrid(),
-          BlocBuilder<AlarmCubit, AlarmState>(
+          BlocBuilder<AlarmBloc, AlarmState>(
             builder: (context, state) {
               if (state is AlarmLoading) {
                 return const Center(child: CircularProgressIndicator());
@@ -122,7 +122,7 @@ class _AlarmsScreenBody extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: TextButton.icon(
-        onPressed: () => context.read<AlarmCubit>().clearAlarms(),
+        onPressed: () => context.read<AlarmBloc>().add(ClearAlarmsEvent()),
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           backgroundColor: color.withValues(alpha: 0.05),

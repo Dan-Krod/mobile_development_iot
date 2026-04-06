@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
-import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
+import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
 import 'package:mobile_development_iot/widgets/common/custom_input.dart';
@@ -28,9 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      context.read<AuthCubit>().login(
-        _emailController.text.trim(),
-        _passController.text,
+      context.read<AuthBloc>().add(
+        LoginEvent(_emailController.text.trim(), _passController.text),
       );
     }
   }
@@ -49,10 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isOnline =
-        context.watch<ConnectivityCubit>().state is ConnectivityOnline;
+        context.watch<ConnectivityBloc>().state is ConnectivityOnline;
 
     return Scaffold(
-      body: BlocListener<AuthCubit, AuthState>(
+      body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (!ModalRoute.of(context)!.isCurrent) return;
           if (state is AuthAuthenticated) {

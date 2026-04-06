@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/screens/audit_logs_screen.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
@@ -14,7 +14,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthUnauthenticated) {
           Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
@@ -34,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
           actions: [
-            BlocBuilder<AuthCubit, AuthState>(
+            BlocBuilder<AuthBloc, AuthState>(
               builder: (context, state) {
                 if (state is AuthAuthenticated) {
                   return IconButton(
@@ -54,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
-        body: BlocBuilder<AuthCubit, AuthState>(
+        body: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             UserModel? user;
             if (state is AuthAuthenticated) user = state.user;

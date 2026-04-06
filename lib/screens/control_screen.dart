@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/control_cubit.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
+import 'package:mobile_development_iot/blocs/control/control_bloc.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
 import 'package:mobile_development_iot/widgets/common/control_toggle.dart';
@@ -20,7 +20,7 @@ class ControlScreen extends StatelessWidget {
 
     return BlocProvider(
       create: (context) =>
-          ControlCubit(context.read<MqttCubit>(), tank.isHardwareBound),
+          ControlBloc(context.read<MqttBloc>(), tank.isHardwareBound),
       child: _ControlScreenBody(tank: tank),
     );
   }
@@ -45,9 +45,9 @@ class _ControlScreenBody extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.transparent,
       ),
-      body: BlocBuilder<MqttCubit, MqttState>(
+      body: BlocBuilder<MqttBloc, MqttState>(
         builder: (context, mqttState) {
-          return BlocBuilder<ControlCubit, ControlState>(
+          return BlocBuilder<ControlBloc, ControlState>(
             builder: (context, controlState) {
               final isConnected = mqttState is MqttDataState;
               final localOverride = isConnected && mqttState.localOverride;
@@ -117,12 +117,13 @@ class _ControlScreenBody extends StatelessWidget {
                       isDisabled: isLocked || isDisconnected,
                       onChanged: (val) {
                         if (isHardware) {
-                          context.read<MqttCubit>().sendCommand(
-                            'system_status',
-                            val,
+                          context.read<MqttBloc>().add(
+                            SendMqttCommandEvent('system_status', val),
                           );
                         } else {
-                          context.read<ControlCubit>().toggleSystem(val);
+                          context.read<ControlBloc>().add(
+                            ToggleSystemEvent(val),
+                          );
                         }
                       },
                     ),
@@ -140,12 +141,11 @@ class _ControlScreenBody extends StatelessWidget {
                       isDisabled: isDisabled,
                       onChanged: (val) {
                         if (isHardware) {
-                          context.read<MqttCubit>().sendCommand(
-                            'pump_command',
-                            val,
+                          context.read<MqttBloc>().add(
+                            SendMqttCommandEvent('pump_command', val),
                           );
                         } else {
-                          context.read<ControlCubit>().togglePump(val);
+                          context.read<ControlBloc>().add(TogglePumpEvent(val));
                         }
                       },
                     ),
@@ -156,8 +156,9 @@ class _ControlScreenBody extends StatelessWidget {
                       value: controlState.valveState,
                       activeColor: primaryColor,
                       isDisabled: isDisabled,
-                      onChanged: (val) =>
-                          context.read<ControlCubit>().toggleValve(val),
+                      onChanged: (val) => context.read<ControlBloc>().add(
+                        ToggleValveEvent(val),
+                      ),
                     ),
 
                     const Spacer(),
@@ -168,18 +169,16 @@ class _ControlScreenBody extends StatelessWidget {
                           ? null
                           : () {
                               if (isHardware) {
-                                context.read<MqttCubit>().sendCommand(
-                                  'pump_command',
-                                  false,
+                                context.read<MqttBloc>().add(
+                                  SendMqttCommandEvent('pump_command', false),
                                 );
-                                context.read<MqttCubit>().sendCommand(
-                                  'system_status',
-                                  false,
+                                context.read<MqttBloc>().add(
+                                  SendMqttCommandEvent('system_status', false),
                                 );
                               } else {
-                                context
-                                    .read<ControlCubit>()
-                                    .emergencyShutdown();
+                                context.read<ControlBloc>().add(
+                                  EmergencyShutdownEvent(),
+                                );
                               }
                             },
                     ),

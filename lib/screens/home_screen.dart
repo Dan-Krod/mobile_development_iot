@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
-import 'package:mobile_development_iot/cubits/tank_cubit.dart';
+import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
+import 'package:mobile_development_iot/blocs/tank/tank_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/dialogs/add_tank_dialog.dart';
 import 'package:mobile_development_iot/widgets/hud/home_header.dart';
@@ -24,13 +24,13 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOnline =
-        context.watch<ConnectivityCubit>().state is ConnectivityOnline;
+        context.watch<ConnectivityBloc>().state is ConnectivityOnline;
 
     return Scaffold(
       backgroundColor: const Color(0xFF020617),
-      body: BlocListener<TankCubit, TankState>(
+      body: BlocListener<TankBloc, TankState>(
         listener: _handleActions,
-        child: BlocBuilder<TankCubit, TankState>(
+        child: BlocBuilder<TankBloc, TankState>(
           buildWhen: (prev, curr) =>
               curr is! TankAddSuccess &&
               curr is! TankDeleteSuccess &&

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/audit_cubit.dart';
+import 'package:mobile_development_iot/blocs/audit/audit_bloc.dart';
 import 'package:mobile_development_iot/repositories/api_client.dart';
 
 class AuditLogsScreen extends StatelessWidget {
@@ -9,7 +9,7 @@ class AuditLogsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AuditCubit(context.read<ApiClient>()),
+      create: (context) => AuditBloc(context.read<ApiClient>()),
       child: const _AuditLogsScreenBody(),
     );
   }
@@ -31,7 +31,7 @@ class _AuditLogsScreenBody extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: const Color(0xFF0F172A),
-      body: BlocBuilder<AuditCubit, AuditState>(
+      body: BlocBuilder<AuditBloc, AuditState>(
         builder: (context, state) {
           if (state is AuditLoading) {
             return const Center(

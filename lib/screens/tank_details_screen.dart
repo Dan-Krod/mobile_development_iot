@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/tank/fluid_tank_observation.dart';
 import 'package:mobile_development_iot/widgets/tank/sensor_card.dart';
@@ -18,9 +18,9 @@ class TankDetailsScreen extends StatelessWidget {
     if (isHardware) {
       Future.microtask(() {
         if (!context.mounted) return;
-        final mqtt = context.read<MqttCubit>();
+        final mqtt = context.read<MqttBloc>();
         if (mqtt.state is MqttInitial || mqtt.state is MqttDisconnected) {
-          mqtt.connect('10.217.121.222');
+          mqtt.add(ConnectMqttEvent('10.217.121.222'));
         }
       });
     }
@@ -39,7 +39,7 @@ class TankDetailsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            BlocBuilder<MqttCubit, MqttState>(
+            BlocBuilder<MqttBloc, MqttState>(
               builder: (context, mqttState) {
                 return _buildStatusBadge(isHardware, mqttState);
               },
@@ -57,7 +57,7 @@ class TankDetailsScreen extends StatelessWidget {
             child: ObservationBay(primaryColor: tankColor, onTankTap: () {}),
           ),
           _buildGlowingDivider(tankColor),
-          BlocBuilder<MqttCubit, MqttState>(
+          BlocBuilder<MqttBloc, MqttState>(
             builder: (context, mqttState) {
               return _buildSensorRow(tankColor, isHardware, mqttState);
             },
@@ -80,8 +80,13 @@ class TankDetailsScreen extends StatelessWidget {
       badgeColor = Colors.orangeAccent;
       badgeText = 'CONNECTING...';
     } else if (state is MqttDataState) {
-      badgeColor = Colors.greenAccent;
-      badgeText = 'ESP32 CONNECTED';
+      if (state.isDeviceOnline) {
+        badgeColor = Colors.greenAccent;
+        badgeText = 'ESP32 CONNECTED';
+      } else {
+        badgeColor = Colors.orangeAccent;
+        badgeText = 'BROKER OK / ESP32 OFFLINE';
+      }
     } else if (state is MqttBlocked) {
       badgeColor = Colors.red;
       badgeText = 'ACCESS DENIED';

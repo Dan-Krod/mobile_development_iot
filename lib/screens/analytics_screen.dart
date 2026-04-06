@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/mqtt_cubit.dart';
+import 'package:mobile_development_iot/blocs/mqtt/mqtt_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
 import 'package:mobile_development_iot/widgets/tank/chart_painter.dart';
@@ -87,7 +87,7 @@ class AnalyticsScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                BlocBuilder<MqttCubit, MqttState>(
+                BlocBuilder<MqttBloc, MqttState>(
                   builder: (context, state) {
                     String fluidVal = '${(tank.currentLevel * 100).toInt()}%';
                     String tempVal = '24.57 °C';

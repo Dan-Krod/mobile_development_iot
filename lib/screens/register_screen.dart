@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_development_iot/cubits/auth_cubit.dart';
-import 'package:mobile_development_iot/cubits/connectivity_cubit.dart';
+import 'package:mobile_development_iot/blocs/auth/auth_bloc.dart';
+import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
 import 'package:mobile_development_iot/models/user_model.dart';
 import 'package:mobile_development_iot/utils/validators.dart';
 import 'package:mobile_development_iot/widgets/common/action_button.dart';
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         database: _dbController.text.trim(),
       );
 
-      context.read<AuthCubit>().register(newUser);
+      context.read<AuthBloc>().add(RegisterEvent(newUser));
     }
   }
 
@@ -62,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isOnline =
-        context.watch<ConnectivityCubit>().state is ConnectivityOnline;
+        context.watch<ConnectivityBloc>().state is ConnectivityOnline;
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
       ),
       extendBodyBehindAppBar: true,
-      body: BlocListener<AuthCubit, AuthState>(
+      body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
             ScaffoldMessenger.of(context).showSnackBar(
