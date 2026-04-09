@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_development_iot/blocs/tank/tank_event.dart';
 import 'package:mobile_development_iot/blocs/tank/tank_state.dart';
+import 'package:mobile_development_iot/models/tank_model.dart';
 import 'package:mobile_development_iot/repositories/tank_repository.dart';
 
 export 'tank_event.dart';
@@ -32,14 +33,22 @@ class TankBloc extends Bloc<TankEvent, TankState> {
   }
 
   Future<void> _onAddTank(AddTankEvent event, Emitter<TankState> emit) async {
+    final currentState = state;
+    List<TankModel> currentTanks = [];
+    if (currentState is TankLoaded) currentTanks = currentState.tanks;
+
     try {
       await _tankRepository.addTank(event.tank);
       emit(TankAddSuccess('NODE ADDED SUCCESSFULLY'));
 
-      add(LoadTanksEvent());
+      if (currentTanks.isNotEmpty) {
+        emit(TankLoaded([...currentTanks, event.tank]));
+      } else {
+        add(LoadTanksEvent());
+      }
     } catch (e) {
       emit(TankActionError('Failed to add node: Server error'));
-      add(LoadTanksEvent());
+      if (currentTanks.isNotEmpty) emit(TankLoaded(currentTanks));
     }
   }
 
@@ -47,18 +56,35 @@ class TankBloc extends Bloc<TankEvent, TankState> {
     DeleteTankEvent event,
     Emitter<TankState> emit,
   ) async {
+    final currentState = state;
+    List<TankModel> currentTanks = [];
+    if (currentState is TankLoaded) currentTanks = currentState.tanks;
+
     try {
       await _tankRepository.deleteTank(event.id);
+
       emit(TankDeleteSuccess('NODE TERMINATED'));
 
-      add(LoadTanksEvent());
+      if (currentTanks.isNotEmpty) {
+        final updatedTanks = currentTanks
+            .where((t) => t.id != event.id)
+            .toList();
+        emit(TankLoaded(updatedTanks));
+      } else {
+        add(LoadTanksEvent());
+      }
     } catch (e) {
       if (e.toString().contains('BACKEND_OFFLINE')) {
         emit(TankActionError('CRITICAL: BACKEND SERVER IS DOWN'));
       } else {
         emit(TankActionError('Failed to delete node. Check connection.'));
       }
-      add(LoadTanksEvent());
+
+      if (currentTanks.isNotEmpty) {
+        emit(TankLoaded(currentTanks));
+      } else {
+        add(LoadTanksEvent());
+      }
     }
   }
 }

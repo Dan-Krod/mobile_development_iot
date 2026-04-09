@@ -75,6 +75,7 @@ class SecureTankRepository implements ITankRepository {
           await _api.saveTank(data);
         } catch (e) {
           debugPrint('API Офлайн: Не вдалося синхронізувати бак ${tank.id}');
+          throw Exception('BACKEND_OFFLINE');
         }
       }
     }
@@ -91,13 +92,13 @@ class SecureTankRepository implements ITankRepository {
   Future<void> deleteTank(String id) async {
     try {
       await _api.deleteTank(id);
+      final tanks = await getTanks();
+      tanks.removeWhere((t) => t.id == id);
+      await _saveLocally(tanks);
       debugPrint('API: Бак $id успішно видалено з сервера');
     } catch (e) {
       debugPrint('API Офлайн: Не вдалося видалити бак з сервера: $e');
+      throw Exception('BACKEND_OFFLINE');
     }
-
-    final tanks = await getTanks();
-    tanks.removeWhere((t) => t.id == id);
-    await _saveLocally(tanks);
   }
 }
