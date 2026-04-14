@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_development_iot/blocs/connectivity/connectivity_bloc.dart';
 import 'package:mobile_development_iot/blocs/tank/tank_bloc.dart';
 import 'package:mobile_development_iot/models/tank_model.dart';
+import 'package:mobile_development_iot/utils/alarm_helper.dart';
 import 'package:mobile_development_iot/widgets/dialogs/add_tank_dialog.dart';
 import 'package:mobile_development_iot/widgets/hud/home_header.dart';
 import 'package:mobile_development_iot/widgets/hud/tech_grid.dart';
@@ -38,7 +39,14 @@ class HomeScreen extends StatelessWidget {
           builder: (context, state) {
             final tanks = state is TankLoaded ? state.tanks : <TankModel>[];
             return ShakeSimulationWrapper(
-              tanks: tanks,
+              onRawShake: () async {
+                if (tanks.isEmpty) {
+                  return;
+                }
+
+                final targetTank = tanks.first;
+                await AlarmHelper.triggerImpactAlarm(context, targetTank);
+              },
               child: Stack(
                 children: [
                   const TechGrid(),

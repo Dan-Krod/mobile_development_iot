@@ -12,3 +12,8 @@ class SecretModeToggled extends SecretModeState {
   const SecretModeToggled(bool currentState)
     : super(isSecretModeActive: currentState);
 }
+
+class SystemShockSimulated extends SecretModeState {
+  const SystemShockSimulated(bool currentState)
+    : super(isSecretModeActive: currentState);
+}
