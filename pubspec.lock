@@ -557,6 +557,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  smart_fluid_flashlight_plugin:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "11a793caa0fc89d1e85484a09e348793ac0e3b5d"
+      url: "https://github.com/Dan-Krod/smart_fluid_flashlight_plugin.git"
+    source: git
+    version: "0.0.1"
   source_span:
     dependency: transitive
     description:
